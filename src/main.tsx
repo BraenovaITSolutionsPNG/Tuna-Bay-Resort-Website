@@ -19,6 +19,7 @@ import AdminFacilities from './pages/admin/Facilities'
 import AdminMenu from './pages/admin/Menu'
 import AdminGallery from './pages/admin/Gallery'
 import AdminTestimonials from './pages/admin/Testimonials'
+import AdminUsers from './pages/admin/Users'
 import Staff from './pages/Staff'
 import { LoginPage } from './components/ui/sign-in-page'
 import './index.css'
@@ -46,6 +47,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="menu" element={<AdminMenu />} />
           <Route path="gallery" element={<AdminGallery />} />
           <Route path="testimonials" element={<AdminTestimonials />} />
+          <Route path="users" element={<AdminUsers />} />
         </Route>
         <Route path="/admin/login" element={<LoginPage role="admin" />} />
         <Route path="/staff/login" element={<LoginPage role="staff" />} />

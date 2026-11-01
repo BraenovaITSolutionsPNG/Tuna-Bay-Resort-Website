@@ -365,4 +365,39 @@ app.delete('/api/testimonials/:id', authMiddleware, (req, res) => {
   res.json({ success: true })
 })
 
+// Users (admin only)
+app.get('/api/users', authMiddleware, (req, res) => {
+  const user = (req as express.Request & { user: { role: string } }).user
+  if (user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' })
+  res.json(db.prepare('SELECT id, email, name, role, created_at FROM users').all())
+})
+
+app.post('/api/users', authMiddleware, (req, res) => {
+  const user = (req as express.Request & { user: { role: string } }).user
+  if (user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' })
+  const { email, password, name, role } = req.body
+  if (!email || !password || !name) return res.status(400).json({ error: 'Missing fields' })
+  const hash = bcrypt.hashSync(String(password), 10)
+  const result = db.prepare('INSERT INTO users (email, password_hash, name, role) VALUES (?, ?, ?, ?)').run(
+    String(email).trim(),
+    hash,
+    String(name).trim(),
+    role === 'admin' ? 'admin' : 'staff',
+  )
+  res.json({ success: true, id: result.lastInsertRowid })
+})
+
+app.delete('/api/users/:id', authMiddleware, (req, res) => {
+  const user = (req as express.Request & { user: { role: string; id: number } }).user
+  if (user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' })
+  if (Number(req.params.id) === user.id) return res.status(400).json({ error: 'Cannot delete yourself' })
+  const result = db.prepare('DELETE FROM users WHERE id = ?').run(req.params.id)
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found' })
+  res.json({ success: true })
+})
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
+
 export default app
