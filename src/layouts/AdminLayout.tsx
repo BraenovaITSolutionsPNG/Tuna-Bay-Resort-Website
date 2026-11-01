@@ -29,8 +29,6 @@ export default function AdminLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const [open, setOpen] = useState(true)
-  const [selected, setSelected] = useState('Dashboard')
-  const [isDark, setIsDark] = useState(false)
 
   const logout = () => {
     localStorage.removeItem('token')
@@ -49,8 +47,8 @@ export default function AdminLayout() {
   ]
 
   return (
-    <div className={`flex min-h-screen w-full ${isDark ? 'dark' : ''}`}>
-      <div className="flex w-full bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100">
+    <div className="flex min-h-screen w-full">
+      <div className="flex w-full bg-gray-50 text-gray-900">
         <nav
           className={`sticky top-0 h-screen shrink-0 border-r transition-all duration-300 ease-in-out ${
             open ? 'w-64' : 'w-16'
@@ -83,7 +81,7 @@ export default function AdminLayout() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  onClick={() => setSelected(item.title)}
+                  onClick={() => {}}
                   className={`relative flex h-11 w-full items-center rounded-md transition-all duration-200 ${
                     isSelected
                       ? 'bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 shadow-sm border-l-2 border-blue-500'
@@ -114,17 +112,8 @@ export default function AdminLayout() {
                 Account
               </div>
               <button
-                onClick={() => setIsDark(!isDark)}
-                className="relative flex h-11 w-full items-center rounded-md transition-all duration-200 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200"
-              >
-                <div className="grid h-full w-12 place-content-center">
-                  {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                </div>
-                <span className="text-sm font-medium">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
-              </button>
-              <button
                 onClick={logout}
-                className="relative flex h-11 w-full items-center rounded-md transition-all duration-200 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200"
+                className="relative flex h-11 w-full items-center rounded-md transition-all duration-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               >
                 <div className="grid h-full w-12 place-content-center">
                   <User className="h-4 w-4" />
