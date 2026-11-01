@@ -49,7 +49,7 @@ export default function Home() {
                 Reserve a Table / Function
               </Link>
             </div>
-            <div className="mt-8 sm:mt-12 flex flex-wrap gap-x-6 gap-y-2 border-t border-white/20 pt-5 text-xs sm:text-sm text-white/70">
+            <div className="mt-8 sm:mt-12 flex flex-wrap justify-center sm:justify-start gap-x-6 gap-y-2 border-t border-white/20 pt-5 text-xs sm:text-sm text-white/70">
               <span className="flex items-center gap-2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4 text-seafoam"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg> Open Fri–Sun</span>
               <span className="flex items-center gap-2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4 text-seafoam"><path d="M3 18h18M5 14h14M8 14a4 4 0 0 1 8 0M12 3v3" /></svg> Sunset from 5:30pm</span>
             </div>
