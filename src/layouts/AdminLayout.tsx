@@ -45,6 +45,7 @@ export default function AdminLayout() {
     { Icon: ImageIcon, title: 'Gallery', path: '/admin/gallery' },
     { Icon: Users, title: 'Testimonials', path: '/admin/testimonials' },
     { Icon: User, title: 'Users', path: '/admin/users' },
+    { Icon: Settings, title: 'Settings', path: '/admin/settings' },
     { Icon: Monitor, title: 'View Site', path: '/' },
   ]
 

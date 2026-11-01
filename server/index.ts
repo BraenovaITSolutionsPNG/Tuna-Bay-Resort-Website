@@ -396,6 +396,19 @@ app.delete('/api/users/:id', authMiddleware, (req, res) => {
   res.json({ success: true })
 })
 
+// Settings
+app.get('/api/settings', (req, res) => {
+  const rows = db.prepare('SELECT * FROM settings').all() as { key: string; value: string }[]
+  res.json(rows)
+})
+
+app.post('/api/settings', authMiddleware, (req, res) => {
+  const { key, value } = req.body
+  if (!key) return res.status(400).json({ error: 'Missing key' })
+  db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value').run(String(key).trim(), String(value))
+  res.json({ success: true })
+})
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
