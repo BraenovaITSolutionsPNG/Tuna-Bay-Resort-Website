@@ -1,4 +1,4 @@
-export default function handler(req, res) {
+export default function handler(req: any, res: any) {
   const { id } = req.query
   if (req.method === 'PUT') {
     const { status } = req.body || {}

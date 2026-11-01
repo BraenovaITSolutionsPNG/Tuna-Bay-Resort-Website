@@ -1,4 +1,4 @@
-export default function handler(req, res) {
+export default function handler(req: any, res: any) {
   if (req.method === 'DELETE') {
     return res.json({ success: true })
   }

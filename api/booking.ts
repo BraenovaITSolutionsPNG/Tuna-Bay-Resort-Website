@@ -12,7 +12,7 @@ function clean(value: unknown, maxLength = 100): string {
   return typeof value === 'string' ? value.trim().slice(0, maxLength) : ''
 }
 
-export default function handler(req, res) {
+export default function handler(req: any, res: any) {
   // Security headers
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
@@ -90,3 +90,4 @@ export default function handler(req, res) {
     },
   });
 }
+
