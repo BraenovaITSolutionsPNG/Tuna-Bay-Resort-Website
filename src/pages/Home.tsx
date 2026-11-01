@@ -144,14 +144,16 @@ export default function Home() {
             <Eyebrow>Guest Reviews</Eyebrow>
             <h2 className="heading-lg mt-4">What our guests <em>say</em></h2>
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {testimonials.map(t => (
-              <div key={t.id} className="rounded-3xl border border-ocean/10 bg-sand-light p-6 shadow-[0_12px_35px_rgba(8,49,64,.05)]">
-                <div className="text-yellow-500">{'★'.repeat(t.rating)}</div>
-                <p className="mt-3 text-sm leading-6 text-muted italic">"{t.text}"</p>
-                <p className="mt-4 font-display text-ocean">{t.name}</p>
-              </div>
-            ))}
+          <div className="overflow-hidden">
+            <div className="marquee-track gap-6">
+              {[...testimonials, ...testimonials].map((t, i) => (
+                <div key={i} className="w-80 shrink-0 rounded-3xl border border-ocean/10 bg-sand-light p-6 shadow-[0_12px_35px_rgba(8,49,64,.05)]">
+                  <div className="text-yellow-500">{'★'.repeat(t.rating)}</div>
+                  <p className="mt-3 text-sm leading-6 text-muted italic">"{t.text}"</p>
+                  <p className="mt-4 font-display text-ocean">{t.name}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="mt-12 max-w-xl mx-auto">
