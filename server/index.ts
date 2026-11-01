@@ -130,6 +130,39 @@ app.get('/api/rooms', (req, res) => {
   res.json(db.prepare('SELECT * FROM rooms').all())
 })
 
+app.post('/api/rooms', authMiddleware, (req, res) => {
+  const { name, description, price, features, image } = req.body
+  if (!name || !price) return res.status(400).json({ error: 'Missing name or price' })
+  const result = db.prepare('INSERT INTO rooms (name, description, price, features, image) VALUES (?, ?, ?, ?, ?)').run(
+    String(name).trim(),
+    description ? String(description).trim() : null,
+    String(price).trim(),
+    features ? String(features).trim() : null,
+    image ? String(image).trim() : null,
+  )
+  res.json({ success: true, id: result.lastInsertRowid })
+})
+
+app.put('/api/rooms/:id', authMiddleware, (req, res) => {
+  const { name, description, price, features, image } = req.body
+  const result = db.prepare('UPDATE rooms SET name=?, description=?, price=?, features=?, image=? WHERE id=?').run(
+    String(name).trim(),
+    description ? String(description).trim() : null,
+    String(price).trim(),
+    features ? String(features).trim() : null,
+    image ? String(image).trim() : null,
+    req.params.id,
+  )
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found' })
+  res.json({ success: true })
+})
+
+app.delete('/api/rooms/:id', authMiddleware, (req, res) => {
+  const result = db.prepare('DELETE FROM rooms WHERE id = ?').run(req.params.id)
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found' })
+  res.json({ success: true })
+})
+
 // Facilities
 app.get('/api/facilities', (req, res) => {
   res.json(db.prepare('SELECT * FROM facilities').all())
