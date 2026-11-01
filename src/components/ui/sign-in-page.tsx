@@ -42,8 +42,9 @@ export function LoginPage({ role }: LoginPageProps = {}) {
       if (!res.ok) throw new Error(data.error || 'Login failed')
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
-      if (isAdmin) navigate('/admin')
-      else if (isStaff) navigate('/staff')
+      const role = data.user?.role || (isAdmin ? 'admin' : isStaff ? 'staff' : 'user')
+      if (role === 'admin') navigate('/admin')
+      else if (role === 'staff') navigate('/staff')
       else navigate('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
