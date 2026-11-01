@@ -60,7 +60,7 @@ export function LoginPage({ role }: LoginPageProps = {}) {
 
         <div className="absolute inset-0">
           <img
-            src="https://images.unsplash.com/photo-1540541334690-c5963635f6d4?auto=format&fit=crop&w=1200&q=80"
+            src="/images/tuna-bay-hero.jpg"
             alt="Tuna Bay Resort"
             className="w-full h-full object-cover"
           />
