@@ -48,7 +48,7 @@ export default function AdminLayout() {
 
   return (
     <div className="flex min-h-screen w-full">
-      <div className="flex w-full bg-gray-50 text-gray-900">
+      <div className="flex w-full bg-white text-gray-900">
         <nav
           className={`sticky top-0 h-screen shrink-0 border-r transition-all duration-300 ease-in-out ${
             open ? 'w-64' : 'w-16'
@@ -140,7 +140,7 @@ export default function AdminLayout() {
           </button>
         </nav>
 
-        <div className="flex-1 bg-gray-50 dark:bg-gray-950 p-6 overflow-auto">
+        <div className="flex-1 bg-white p-6 overflow-auto">
           <Outlet />
         </div>
       </div>
