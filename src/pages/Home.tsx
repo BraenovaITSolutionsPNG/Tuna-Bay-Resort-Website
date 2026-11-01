@@ -29,6 +29,7 @@ const facilities = [
 
 export default function Home() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
+  const [showReviewForm, setShowReviewForm] = useState(false)
 
   useEffect(() => {
     fetch('/api/testimonials')
@@ -158,9 +159,18 @@ export default function Home() {
 
           <div className="mt-12 max-w-xl mx-auto">
             <h3 className="font-display text-xl text-ocean text-center mb-4">Leave a review</h3>
-            <ReviewForm onSubmitted={() => {
-              fetch('/api/testimonials').then(r => r.ok ? r.json() : []).then(d => setTestimonials(Array.isArray(d) ? d : [])).catch(() => {})
-            }} />
+            {!showReviewForm ? (
+              <div className="text-center">
+                <button onClick={() => setShowReviewForm(true)} className="rounded-full bg-ocean px-6 py-3 text-sm font-bold text-white hover:bg-teal transition">
+                  Write a Review
+                </button>
+              </div>
+            ) : (
+              <ReviewForm onSubmitted={() => {
+                setShowReviewForm(false)
+                fetch('/api/testimonials').then(r => r.ok ? r.json() : []).then(d => setTestimonials(Array.isArray(d) ? d : [])).catch(() => {})
+              }} />
+            )}
           </div>
         </div>
       </section>
