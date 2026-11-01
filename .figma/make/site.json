@@ -1,0 +1,10 @@
+{
+  "description": "Explore Tuna Bay Resort’s coastal dining, event spaces, family day passes, menu, and venue rates, then send a reservation inquiry in Port Moresby.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}

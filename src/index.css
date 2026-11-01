@@ -1,0 +1,129 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'DM Sans', sans-serif;
+  --font-display: 'DM Serif Display', serif;
+  --color-ocean: #083140;
+  --color-teal: #0c766d;
+  --color-seafoam: #8ed8c7;
+  --color-sand: #f3eee4;
+  --color-sand-light: #faf7f1;
+  --color-coral: #e76f51;
+  --color-coral-dark: #cf5b40;
+  --color-ink: #183139;
+  --color-muted: #607278;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-width: 320px;
+    background: var(--color-sand);
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button,
+  a {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background: var(--color-seafoam);
+    color: var(--color-ocean);
+  }
+}
+
+@layer components {
+  .page-wrap {
+    width: min(100% - 2rem, 76rem);
+    margin-inline: auto;
+  }
+
+  .section-space {
+    padding-block: 5.5rem;
+  }
+
+  .heading-lg {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    line-height: 1.03;
+    letter-spacing: -0.03em;
+    color: inherit;
+  }
+
+  .heading-lg em {
+    font-weight: 400;
+    color: var(--color-teal);
+  }
+
+  .bg-ocean .heading-lg em {
+    color: var(--color-seafoam);
+  }
+
+  .field-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--color-ink);
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  .field-input {
+    width: 100%;
+    border: 1px solid color-mix(in srgb, var(--color-ocean) 14%, transparent);
+    border-radius: 0.85rem;
+    background: var(--color-sand-light);
+    padding: 0.9rem 1rem;
+    color: var(--color-ink);
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .field-input:focus {
+    border-color: var(--color-teal);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-teal) 12%, transparent);
+  }
+
+  .field-input::placeholder {
+    color: color-mix(in srgb, var(--color-muted) 65%, transparent);
+  }
+
+  .map-pattern {
+    background-color: #d6e5da;
+    background-image:
+      linear-gradient(34deg, transparent 46%, rgba(255,255,255,.8) 47%, rgba(255,255,255,.8) 50%, transparent 51%),
+      linear-gradient(-22deg, transparent 46%, rgba(8,49,64,.12) 47%, rgba(8,49,64,.12) 49%, transparent 50%);
+    background-size: 4rem 3rem, 5rem 4rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .page-wrap {
+    width: min(100% - 3rem, 76rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .section-space {
+    padding-block: 7.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
