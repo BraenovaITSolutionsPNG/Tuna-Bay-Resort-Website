@@ -5,6 +5,7 @@ interface Testimonial {
   name: string
   text: string
   rating: number
+  approved: boolean
 }
 
 export default function AdminTestimonials() {
@@ -13,7 +14,11 @@ export default function AdminTestimonials() {
   const [showForm, setShowForm] = useState(false)
 
   const reload = () => {
-    fetch('/api/testimonials').then(r => r.ok ? r.json() : []).then(d => setItems(Array.isArray(d) ? d : [])).catch(() => setItems([]))
+    const token = localStorage.getItem('token')
+    fetch('/api/testimonials?all=true', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : [])
+      .then(d => setItems(Array.isArray(d) ? d : []))
+      .catch(() => setItems([]))
   }
 
   useEffect(() => { reload() }, [])
@@ -79,7 +84,17 @@ export default function AdminTestimonials() {
               <span className="text-yellow-500">{'★'.repeat(t.rating)}</span>
             </div>
             <p className="mt-2 text-sm text-muted">{t.text}</p>
-            <button onClick={() => deleteItem(t.id)} className="mt-3 text-xs text-red-600 hover:underline">Delete</button>
+            <div className="mt-3 flex gap-2">
+              {!t.approved && (
+                <button onClick={async () => {
+                  const token = localStorage.getItem('token')
+                  await fetch(`/api/testimonials/${t.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ approved: true }) })
+                  reload()
+                }} className="text-xs text-green-600 hover:underline">Approve</button>
+              )}
+              {t.approved && <span className="text-xs text-green-600">Approved</span>}
+              <button onClick={() => deleteItem(t.id)} className="text-xs text-red-600 hover:underline">Delete</button>
+            </div>
           </div>
         ))}
       </div>

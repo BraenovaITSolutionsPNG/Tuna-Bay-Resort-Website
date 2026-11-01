@@ -17,7 +17,7 @@ export default function ReviewForm({ onSubmitted }: { onSubmitted: () => void })
       })
       if (!res.ok) throw new Error('Failed')
       setName(''); setText(''); setRating(5)
-      setStatus('Thank you for your review!')
+      setStatus('Thank you! Your review is pending approval.')
       onSubmitted()
     } catch {
       setStatus('Something went wrong. Please try again.')

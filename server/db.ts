@@ -76,9 +76,13 @@ export async function initDb() {
       name TEXT NOT NULL,
       text TEXT NOT NULL,
       rating INTEGER DEFAULT 5,
+      approved BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `
+  // Migration: add approved column if missing
+  await sql`ALTER TABLE testimonials ADD COLUMN IF NOT EXISTS approved BOOLEAN DEFAULT FALSE`
+
   await sql`
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,

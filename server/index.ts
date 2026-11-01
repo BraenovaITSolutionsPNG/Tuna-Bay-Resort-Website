@@ -215,7 +215,12 @@ app.delete('/api/gallery/:id', authMiddleware, async (req, res) => {
 })
 
 app.get('/api/testimonials', async (req, res) => {
-  const rows = await sql`SELECT * FROM testimonials`
+  const all = req.query.all === 'true'
+  if (all) {
+    const rows = await sql`SELECT * FROM testimonials ORDER BY created_at DESC`
+    return res.json(rows)
+  }
+  const rows = await sql`SELECT * FROM testimonials WHERE approved = TRUE ORDER BY created_at DESC`
   res.json(rows)
 })
 
@@ -226,6 +231,13 @@ app.post('/api/testimonials', async (req, res) => {
     INSERT INTO testimonials (name, text, rating) VALUES (${String(name).trim()}, ${String(text).trim()}, ${rating ? Number(rating) : 5}) RETURNING id
   `
   res.json({ success: true, id: rows[0].id })
+})
+
+app.put('/api/testimonials/:id', authMiddleware, async (req, res) => {
+  const { approved } = req.body
+  const rows = await sql`UPDATE testimonials SET approved = ${approved === true} WHERE id = ${Number(req.params.id)} RETURNING id`
+  if (rows.length === 0) return res.status(404).json({ error: 'Not found' })
+  res.json({ success: true })
 })
 
 app.delete('/api/testimonials/:id', authMiddleware, async (req, res) => {

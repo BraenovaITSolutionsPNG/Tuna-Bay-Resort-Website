@@ -181,7 +181,10 @@ export default async function handler(req: any, res: any) {
   if (path === 'testimonials') {
     if (method === 'GET') {
       if (sql) {
-        const rows = await sql`SELECT * FROM testimonials`
+        const all = req.query?.all === 'true'
+        const rows = all
+          ? await sql`SELECT * FROM testimonials ORDER BY created_at DESC`
+          : await sql`SELECT * FROM testimonials WHERE approved = TRUE ORDER BY created_at DESC`
         return res.json(rows)
       }
       return res.json([])
@@ -191,7 +194,7 @@ export default async function handler(req: any, res: any) {
         const { name, text, rating } = req.body || {}
         if (!name || !text) return res.status(400).json({ error: 'Missing name or text' })
         const rows = await sql`
-          INSERT INTO testimonials (name, text, rating) VALUES (${String(name).trim()}, ${String(text).trim()}, ${rating ? Number(rating) : 5}) RETURNING id
+          INSERT INTO testimonials (name, text, rating, approved) VALUES (${String(name).trim()}, ${String(text).trim()}, ${rating ? Number(rating) : 5}, FALSE) RETURNING id
         `
         return res.json({ success: true, id: rows[0].id })
       }
@@ -257,7 +260,12 @@ export default async function handler(req: any, res: any) {
             if (rows.length === 0) return res.status(404).json({ error: 'Not found' })
             return res.json({ success: true })
           }
-          // For others, just acknowledge (admin edits via full form re-post)
+          if (resource === 'testimonials') {
+            const { approved } = req.body || {}
+            const rows = await sql`UPDATE testimonials SET approved = ${approved === true} WHERE id = ${Number(id)} RETURNING id`
+            if (rows.length === 0) return res.status(404).json({ error: 'Not found' })
+            return res.json({ success: true })
+          }
           return res.json({ success: true })
         }
         return res.json({ success: true })
