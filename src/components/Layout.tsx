@@ -127,24 +127,3 @@ export function Footer() {
     </footer>
   )
 }
-          <div className="flex gap-2">
-            <a href="#" aria-label="Facebook" className="grid size-10 place-items-center rounded-full border border-white/15 text-white/70 hover:bg-white/10 hover:text-white">
-              <svg viewBox="0 0 24 24" fill="currentColor" className="size-4"><path d="M14 8h3V4h-3c-3 0-5 2-5 5v3H6v4h3v6h4v-6h3l1-4h-4V9c0-.7.3-1 1-1Z" /></svg>
-            </a>
-            <a href="#" aria-label="Instagram" className="grid size-10 place-items-center rounded-full border border-white/15 text-white/70 hover:bg-white/10 hover:text-white">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><path d="M17.5 6.5h.01" /></svg>
-            </a>
-          </div>
-        </div>
-        <div className="flex flex-col gap-2 pt-6 text-xs text-white/40 sm:flex-row sm:justify-between">
-          <span>© {new Date().getFullYear()} Tuna Bay Resort. All rights reserved.</span>
-          <span>Taurama · Port Moresby · Papua New Guinea</span>
-        </div>
-      </div>
-    </footer>
-  )
-}
-
-export function Eyebrow({ children, light = false }: { children: React.ReactNode; light?: boolean }) {
-  return <div className={`text-xs font-bold uppercase tracking-[0.2em] ${light ? 'text-seafoam' : 'text-teal'}`}>{children}</div>
-}
