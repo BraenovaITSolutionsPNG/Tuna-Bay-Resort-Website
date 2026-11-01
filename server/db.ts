@@ -1,8 +1,11 @@
 import Database from 'better-sqlite3'
 import path from 'node:path'
+import fs from 'node:fs'
 import bcrypt from 'bcryptjs'
 
-const db = new Database(path.resolve(process.cwd(), 'data', 'tunabay.db'))
+const dataDir = path.resolve(process.cwd(), 'data')
+fs.mkdirSync(dataDir, { recursive: true })
+const db = new Database(path.join(dataDir, 'tunabay.db'))
 db.pragma('journal_mode = WAL')
 
 db.exec(`
@@ -17,7 +20,9 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS bookings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    reference TEXT NOT NULL DEFAULT '',
     name TEXT NOT NULL,
+    email TEXT NOT NULL DEFAULT '',
     phone TEXT NOT NULL,
     booking_type TEXT NOT NULL,
     date TEXT NOT NULL,
@@ -85,6 +90,21 @@ try {
 } catch (e) {
   // column already exists
 }
+
+// Migration: add reference and email columns if missing
+for (const statement of [
+  "ALTER TABLE bookings ADD COLUMN reference TEXT NOT NULL DEFAULT ''",
+  "ALTER TABLE bookings ADD COLUMN email TEXT NOT NULL DEFAULT ''",
+]) {
+  try {
+    db.exec(statement)
+  } catch (e) {
+    // column already exists
+  }
+}
+
+// Backfill references for reservations created before references existed.
+db.exec("UPDATE bookings SET reference = 'TB-' || PRINTF('%06d', id) WHERE reference IS NULL OR reference = ''")
 
 // Seed default admin/staff if none exist
 const userCount = db.prepare('SELECT COUNT(*) as c FROM users').get() as { c: number }
@@ -165,13 +185,17 @@ const bookingCount = db.prepare('SELECT COUNT(*) as c FROM bookings').get() as {
 if (bookingCount.c === 0) {
   const types = ['room', 'table', 'function', 'day-pass', 'general']
   const rooms = ['Standard Room', 'Deluxe Room', 'Ocean View Suite', 'Family Room', 'Beachfront Villa']
-  const stmt = db.prepare('INSERT INTO bookings (name, phone, booking_type, date, checkout, party, room, rooms, message, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+  const stmt = db.prepare('INSERT INTO bookings (reference, name, email, phone, booking_type, date, checkout, party, room, rooms, message, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
   const names = ['John Doe', 'Jane Smith', 'Peter Kalu', 'Mary Tama', 'David Ora', 'Sarah Numa', 'James Kila', 'Grace Moka', 'Tom Hiri', 'Lisa Buka', 'Paul Raga', 'Anna Kone', 'Mark Saea', 'Ruth Igo', 'Steve Puka']
   for (let i = 0; i < 25; i++) {
     const type = types[i % types.length]
     const isRoom = type === 'room'
+    const name = names[i % names.length]
+    const email = `${name.toLowerCase().replace(/\s+/g, '.')}@example.com`
     stmt.run(
-      names[i % names.length],
+      `TB-${(100000 + i * 37).toString(36).toUpperCase()}`,
+      name,
+      email,
       '+675 7' + Math.floor(Math.random() * 9000000 + 1000000),
       type,
       '2026-11-' + String((i % 28) + 1).padStart(2, '0'),

@@ -39,6 +39,26 @@ const authLimiter = rateLimit({
   message: 'Too many login attempts, please try again later.'
 })
 
+const BOOKING_TYPES = ['room', 'table', 'function', 'day-pass', 'general'] as const
+
+const ROOM_SLUGS: Record<string, string> = {
+  standard: 'Standard Room',
+  deluxe: 'Deluxe Room',
+  'ocean-view': 'Ocean View Suite',
+  family: 'Family Room',
+  beachfront: 'Beachfront Villa',
+}
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+function clean(value: unknown, maxLength = 100): string {
+  return typeof value === 'string' ? value.trim().slice(0, maxLength) : ''
+}
+
+function makeBookingReference(): string {
+  return `TB-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
+}
+
 // Auth middleware
 function authMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
   const header = req.headers.authorization
@@ -74,36 +94,104 @@ app.post('/api/auth/login', authLimiter, (req, res) => {
   res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } })
 })
 
-// Booking endpoint
+// Booking endpoint — creates a reservation request
 app.post('/api/booking', bookingLimiter, (req, res) => {
-  const { name, phone, bookingType, date, checkout, party, room, rooms, message } = req.body
+  const body = req.body ?? {}
+  const name = clean(body.name, 100)
+  const email = clean(body.email, 120).toLowerCase()
+  const phone = clean(body.phone, 30)
+  const bookingType = clean(body.bookingType, 30)
+  const date = clean(body.date, 10)
+  const checkout = clean(body.checkout, 10)
+  const party = clean(body.party, 30)
+  const room = clean(body.room, 30)
+  const rooms = clean(body.rooms, 10) || '1'
+  const message = clean(body.message, 600)
 
-  if (!name || !phone || !bookingType || !date) {
-    return res.status(400).json({ error: 'Missing required fields' })
+  const errors: string[] = []
+  if (!name) errors.push('Please enter your name.')
+  if (!email) errors.push('Please enter your email address.')
+  else if (!EMAIL_PATTERN.test(email)) errors.push('Please enter a valid email address.')
+  if (!phone) errors.push('Please enter a phone number.')
+  if (!BOOKING_TYPES.includes(bookingType as (typeof BOOKING_TYPES)[number])) {
+    errors.push('Please choose a valid booking type.')
+  }
+  if (!date) errors.push('Please choose a date.')
+
+  if (bookingType === 'room') {
+    if (!ROOM_SLUGS[room]) errors.push('Please select a room.')
+    if (!checkout) errors.push('Please choose a check-out date.')
+    else if (date && checkout <= date) errors.push('Check-out must be after check-in.')
+    if (!party || Number(party) < 1) errors.push('Please enter the number of guests.')
   }
 
-  const stmt = db.prepare(`
-    INSERT INTO bookings (name, phone, booking_type, date, checkout, party, room, rooms, message)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `)
-  const result = stmt.run(
-    String(name).trim().slice(0, 100),
-    String(phone).trim().slice(0, 20),
-    String(bookingType).trim().slice(0, 50),
-    String(date).trim(),
-    checkout ? String(checkout).trim() : null,
-    party ? String(party).trim().slice(0, 50) : null,
-    room ? String(room).trim().slice(0, 50) : null,
-    rooms ? String(rooms).trim().slice(0, 10) : null,
-    message ? String(message).trim().slice(0, 500) : null,
+  if (errors.length > 0) {
+    return res.status(400).json({ error: errors[0], errors })
+  }
+
+  const roomName = bookingType === 'room' ? ROOM_SLUGS[room] : null
+
+  // Prevent double bookings for room stays.
+  if (bookingType === 'room' && roomName && checkout) {
+    const conflicts = db.prepare(`
+      SELECT id, date, checkout FROM bookings
+      WHERE booking_type = 'room'
+        AND status IN ('pending', 'confirmed')
+        AND room = ?
+        AND date < ?
+        AND (checkout IS NULL OR checkout > ?)
+    `).all(roomName, checkout, date) as Array<{ id: number; date: string; checkout: string | null }>
+
+    if (conflicts.length > 0) {
+      return res.status(409).json({
+        error: 'This room is already reserved for the selected dates. Please choose different dates or another room.',
+        conflicts,
+      })
+    }
+  }
+
+  const reference = makeBookingReference()
+  const result = db.prepare(`
+    INSERT INTO bookings (reference, name, email, phone, booking_type, date, checkout, party, room, rooms, message, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+  `).run(
+    reference,
+    name,
+    email,
+    phone,
+    bookingType,
+    date,
+    bookingType === 'room' ? checkout : null,
+    party || null,
+    roomName,
+    bookingType === 'room' ? rooms : null,
+    message || null,
   )
 
-  res.json({ success: true, id: result.lastInsertRowid, message: 'Booking request received' })
+  res.status(201).json({
+    success: true,
+    booking: {
+      id: Number(result.lastInsertRowid),
+      reference,
+      name,
+      email,
+      phone,
+      booking_type: bookingType,
+      date,
+      checkout: bookingType === 'room' ? checkout : null,
+      party: party || null,
+      room: roomName,
+      rooms: bookingType === 'room' ? rooms : null,
+      message: message || null,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+    },
+  })
 })
 
 // List bookings (admin/staff)
 app.get('/api/bookings', authMiddleware, (req, res) => {
-  const rows = db.prepare('SELECT * FROM bookings ORDER BY created_at DESC').all()
+  const rows = db.prepare('SELECT * FROM bookings ORDER BY created_at DESC, id DESC').all()
   res.json(rows)
 })
 

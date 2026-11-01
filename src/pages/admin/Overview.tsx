@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid } from 'recharts'
+import { listBookings } from '../../lib/bookings'
 
 interface Booking {
   id: number
@@ -20,15 +21,14 @@ export default function AdminOverview() {
   const [menu, setMenu] = useState<MenuItem[]>([])
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {}
-    fetch('/api/bookings', { headers })
-      .then(r => r.ok ? r.json() : [])
-      .then(data => setBookings(Array.isArray(data) ? data : []))
-      .catch(() => setBookings([]))
+    let active = true
+    listBookings()
+      .then(({ bookings: rows }) => { if (active) setBookings(rows) })
+      .catch(() => { if (active) setBookings([]) })
     fetch('/api/rooms').then(r => r.ok ? r.json() : []).then(d => setRooms(Array.isArray(d) ? d : [])).catch(() => setRooms([]))
     fetch('/api/facilities').then(r => r.ok ? r.json() : []).then(d => setFacilities(Array.isArray(d) ? d : [])).catch(() => setFacilities([]))
     fetch('/api/menu').then(r => r.ok ? r.json() : []).then(d => setMenu(Array.isArray(d) ? d : [])).catch(() => setMenu([]))
+    return () => { active = false }
   }, [])
 
   const bookingsByType = Object.entries(
