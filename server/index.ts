@@ -168,6 +168,35 @@ app.get('/api/facilities', (req, res) => {
   res.json(db.prepare('SELECT * FROM facilities').all())
 })
 
+app.post('/api/facilities', authMiddleware, (req, res) => {
+  const { title, text, image } = req.body
+  if (!title) return res.status(400).json({ error: 'Missing title' })
+  const result = db.prepare('INSERT INTO facilities (title, text, image) VALUES (?, ?, ?)').run(
+    String(title).trim(),
+    text ? String(text).trim() : null,
+    image ? String(image).trim() : null,
+  )
+  res.json({ success: true, id: result.lastInsertRowid })
+})
+
+app.put('/api/facilities/:id', authMiddleware, (req, res) => {
+  const { title, text, image } = req.body
+  const result = db.prepare('UPDATE facilities SET title=?, text=?, image=? WHERE id=?').run(
+    String(title).trim(),
+    text ? String(text).trim() : null,
+    image ? String(image).trim() : null,
+    req.params.id,
+  )
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found' })
+  res.json({ success: true })
+})
+
+app.delete('/api/facilities/:id', authMiddleware, (req, res) => {
+  const result = db.prepare('DELETE FROM facilities WHERE id = ?').run(req.params.id)
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found' })
+  res.json({ success: true })
+})
+
 // Menu
 app.get('/api/menu', (req, res) => {
   res.json(db.prepare('SELECT * FROM menu_items').all())
