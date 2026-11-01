@@ -107,6 +107,26 @@ app.get('/api/bookings', authMiddleware, (req, res) => {
   res.json(rows)
 })
 
+// Rooms
+app.get('/api/rooms', (req, res) => {
+  res.json(db.prepare('SELECT * FROM rooms').all())
+})
+
+// Facilities
+app.get('/api/facilities', (req, res) => {
+  res.json(db.prepare('SELECT * FROM facilities').all())
+})
+
+// Menu
+app.get('/api/menu', (req, res) => {
+  res.json(db.prepare('SELECT * FROM menu_items').all())
+})
+
+// Gallery
+app.get('/api/gallery', (req, res) => {
+  res.json(db.prepare('SELECT * FROM gallery_images').all())
+})
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
