@@ -7,7 +7,6 @@ const navItems = [
   ['Menu', '/menu'],
   ['Gallery', '/gallery'],
   ['Rooms', '/rooms'],
-  ['360° Tour', '/tour'],
   ['Booking', '/booking'],
   ['Location', '/location'],
 ]
@@ -52,7 +51,6 @@ export function Footer() {
     ['Menu', '/menu'],
     ['Gallery', '/gallery'],
     ['Rooms', '/rooms'],
-    ['360° Tour', '/tour'],
     ['Booking', '/booking'],
     ['Location', '/location'],
   ]

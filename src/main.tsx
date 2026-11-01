@@ -9,7 +9,6 @@ import Gallery from './pages/Gallery'
 import Rooms from './pages/Rooms'
 import Booking from './pages/Booking'
 import Location from './pages/Location'
-import VirtualTour from './pages/VirtualTour'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -22,7 +21,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/menu" element={<Menu />} />
         <Route path="/gallery" element={<Gallery />} />
         <Route path="/rooms" element={<Rooms />} />
-        <Route path="/tour" element={<VirtualTour />} />
         <Route path="/booking" element={<Booking />} />
         <Route path="/location" element={<Location />} />
       </Routes>
