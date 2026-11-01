@@ -1,11 +1,8 @@
 import Database from 'better-sqlite3'
 import path from 'node:path'
-import fs from 'node:fs'
 import bcrypt from 'bcryptjs'
 
-const dataDir = path.resolve(process.cwd(), 'data')
-fs.mkdirSync(dataDir, { recursive: true })
-const db = new Database(path.join(dataDir, 'tunabay.db'))
+const db = new Database(path.resolve(process.cwd(), 'data', 'tunabay.db'))
 db.pragma('journal_mode = WAL')
 
 db.exec(`
@@ -20,9 +17,7 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS bookings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    reference TEXT NOT NULL DEFAULT '',
     name TEXT NOT NULL,
-    email TEXT NOT NULL DEFAULT '',
     phone TEXT NOT NULL,
     booking_type TEXT NOT NULL,
     date TEXT NOT NULL,
@@ -84,29 +79,12 @@ db.exec(`
   );
 `)
 
-// Migration: add status column if missing
 try {
   db.exec("ALTER TABLE bookings ADD COLUMN status TEXT DEFAULT 'pending'")
 } catch (e) {
   // column already exists
 }
 
-// Migration: add reference and email columns if missing
-for (const statement of [
-  "ALTER TABLE bookings ADD COLUMN reference TEXT NOT NULL DEFAULT ''",
-  "ALTER TABLE bookings ADD COLUMN email TEXT NOT NULL DEFAULT ''",
-]) {
-  try {
-    db.exec(statement)
-  } catch (e) {
-    // column already exists
-  }
-}
-
-// Backfill references for reservations created before references existed.
-db.exec("UPDATE bookings SET reference = 'TB-' || PRINTF('%06d', id) WHERE reference IS NULL OR reference = ''")
-
-// Seed default admin/staff if none exist
 const userCount = db.prepare('SELECT COUNT(*) as c FROM users').get() as { c: number }
 if (userCount.c === 0) {
   const hash = (p: string) => bcrypt.hashSync(p, 10)
@@ -118,7 +96,6 @@ if (userCount.c === 0) {
   )
 }
 
-// Seed rooms if empty
 const roomCount = db.prepare('SELECT COUNT(*) as c FROM rooms').get() as { c: number }
 if (roomCount.c === 0) {
   const rooms = [
@@ -132,7 +109,6 @@ if (roomCount.c === 0) {
   rooms.forEach(r => stmt.run(r.name, r.description, r.price, r.features, r.image))
 }
 
-// Seed facilities if empty
 const facCount = db.prepare('SELECT COUNT(*) as c FROM facilities').get() as { c: number }
 if (facCount.c === 0) {
   const facilities = [
@@ -148,7 +124,6 @@ if (facCount.c === 0) {
   facilities.forEach(f => stmt.run(f.title, f.text, f.image))
 }
 
-// Seed menu items if empty
 const menuCount = db.prepare('SELECT COUNT(*) as c FROM menu_items').get() as { c: number }
 if (menuCount.c === 0) {
   const items = [
@@ -169,7 +144,6 @@ if (menuCount.c === 0) {
   items.forEach(m => stmt.run(m.category, m.name, m.description, m.price))
 }
 
-// Seed gallery if empty
 const galCount = db.prepare('SELECT COUNT(*) as c FROM gallery_images').get() as { c: number }
 if (galCount.c === 0) {
   const images = [
@@ -180,22 +154,28 @@ if (galCount.c === 0) {
   images.forEach(g => stmt.run(g.src, g.alt, g.title))
 }
 
-// Seed test bookings if empty
+const testCount = db.prepare('SELECT COUNT(*) as c FROM testimonials').get() as { c: number }
+if (testCount.c === 0) {
+  const items = [
+    { name: 'Sarah K.', text: 'A wonderful escape from the city. The seafood was incredible and the staff were so welcoming.', rating: 5 },
+    { name: 'Mark T.', text: 'Perfect venue for our family gathering. The pool area is great for kids.', rating: 5 },
+    { name: 'Grace M.', text: 'Beautiful sunset views from the jetty. Will definitely come back.', rating: 4 },
+  ]
+  const stmt = db.prepare('INSERT INTO testimonials (name, text, rating) VALUES (?, ?, ?)')
+  items.forEach(t => stmt.run(t.name, t.text, t.rating))
+}
+
 const bookingCount = db.prepare('SELECT COUNT(*) as c FROM bookings').get() as { c: number }
 if (bookingCount.c === 0) {
   const types = ['room', 'table', 'function', 'day-pass', 'general']
   const rooms = ['Standard Room', 'Deluxe Room', 'Ocean View Suite', 'Family Room', 'Beachfront Villa']
-  const stmt = db.prepare('INSERT INTO bookings (reference, name, email, phone, booking_type, date, checkout, party, room, rooms, message, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+  const stmt = db.prepare('INSERT INTO bookings (name, phone, booking_type, date, checkout, party, room, rooms, message, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
   const names = ['John Doe', 'Jane Smith', 'Peter Kalu', 'Mary Tama', 'David Ora', 'Sarah Numa', 'James Kila', 'Grace Moka', 'Tom Hiri', 'Lisa Buka', 'Paul Raga', 'Anna Kone', 'Mark Saea', 'Ruth Igo', 'Steve Puka']
   for (let i = 0; i < 25; i++) {
     const type = types[i % types.length]
     const isRoom = type === 'room'
-    const name = names[i % names.length]
-    const email = `${name.toLowerCase().replace(/\s+/g, '.')}@example.com`
     stmt.run(
-      `TB-${(100000 + i * 37).toString(36).toUpperCase()}`,
-      name,
-      email,
+      names[i % names.length],
       '+675 7' + Math.floor(Math.random() * 9000000 + 1000000),
       type,
       '2026-11-' + String((i % 28) + 1).padStart(2, '0'),
@@ -207,18 +187,6 @@ if (bookingCount.c === 0) {
       i % 4 === 0 ? 'confirmed' : 'pending',
     )
   }
-}
-
-// Seed testimonials if empty
-const testCount = db.prepare('SELECT COUNT(*) as c FROM testimonials').get() as { c: number }
-if (testCount.c === 0) {
-  const items = [
-    { name: 'Sarah K.', text: 'A wonderful escape from the city. The seafood was incredible and the staff were so welcoming.', rating: 5 },
-    { name: 'Mark T.', text: 'Perfect venue for our family gathering. The pool area is great for kids.', rating: 5 },
-    { name: 'Grace M.', text: 'Beautiful sunset views from the jetty. Will definitely come back.', rating: 4 },
-  ]
-  const stmt = db.prepare('INSERT INTO testimonials (name, text, rating) VALUES (?, ?, ?)')
-  items.forEach(t => stmt.run(t.name, t.text, t.rating))
 }
 
 export default db
