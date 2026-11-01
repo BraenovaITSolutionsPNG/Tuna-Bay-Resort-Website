@@ -2,10 +2,13 @@ import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
-import db from './db'
+import jwt from 'jsonwebtoken'
+import bcrypt from 'bcryptjs'
+import db from './db.ts'
 
 const app = express()
 const PORT = process.env.PORT || 5000
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me'
 
 // Security middleware
 app.use(helmet())
@@ -30,9 +33,45 @@ const bookingLimiter = rateLimit({
   message: 'Too many booking requests, please try again later.'
 })
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: 'Too many login attempts, please try again later.'
+})
+
+// Auth middleware
+function authMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const header = req.headers.authorization
+  if (!header?.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' })
+  try {
+    const payload = jwt.verify(header.slice(7), JWT_SECRET) as { id: number; role: string }
+    (req as express.Request & { user: { id: number; role: string } }).user = payload
+    next()
+  } catch {
+    res.status(401).json({ error: 'Invalid token' })
+  }
+}
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
+// Login
+app.post('/api/auth/login', authLimiter, (req, res) => {
+  const { email, password } = req.body
+  if (!email || !password) return res.status(400).json({ error: 'Missing credentials' })
+
+  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(String(email).trim()) as
+    | { id: number; email: string; password_hash: string; name: string; role: string }
+    | undefined
+
+  if (!user || !bcrypt.compareSync(String(password), user.password_hash)) {
+    return res.status(401).json({ error: 'Invalid email or password' })
+  }
+
+  const token = jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '8h' })
+  res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } })
 })
 
 // Booking endpoint
@@ -62,8 +101,8 @@ app.post('/api/booking', bookingLimiter, (req, res) => {
   res.json({ success: true, id: result.lastInsertRowid, message: 'Booking request received' })
 })
 
-// List bookings (admin)
-app.get('/api/bookings', (req, res) => {
+// List bookings (admin/staff)
+app.get('/api/bookings', authMiddleware, (req, res) => {
   const rows = db.prepare('SELECT * FROM bookings ORDER BY created_at DESC').all()
   res.json(rows)
 })

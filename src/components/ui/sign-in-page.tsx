@@ -11,6 +11,7 @@ interface LoginPageProps {
 export function LoginPage({ role }: LoginPageProps = {}) {
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -28,12 +29,25 @@ export function LoginPage({ role }: LoginPageProps = {}) {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Login submitted:', { ...formData, role })
-    if (isAdmin) navigate('/admin')
-    else if (isStaff) navigate('/staff')
-    else navigate('/')
+    setError('')
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Login failed')
+      localStorage.setItem('token', data.token)
+      localStorage.setItem('user', JSON.stringify(data.user))
+      if (isAdmin) navigate('/admin')
+      else if (isStaff) navigate('/staff')
+      else navigate('/')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed')
+    }
   }
 
   const title = isAdmin ? 'Admin Sign In' : isStaff ? 'Staff Sign In' : 'Welcome Back'
@@ -159,6 +173,12 @@ export function LoginPage({ role }: LoginPageProps = {}) {
                 Forgot password?
               </button>
             </div>
+
+            {error && (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
 
             {/* Submit */}
             <button
