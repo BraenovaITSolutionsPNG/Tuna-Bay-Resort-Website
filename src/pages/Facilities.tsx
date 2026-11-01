@@ -1,4 +1,5 @@
 import { Header, Footer, Eyebrow } from '../components/Layout'
+import { ReactPhotoSphereViewer } from 'react-photo-sphere-viewer'
 
 const facilities = [
   { title: 'Resort Rooms', text: 'Comfortable accommodation for overnight stays and relaxed coastal weekends.', image: '/images/tuna-bay-waterfront.png' },
@@ -33,6 +34,20 @@ export default function Facilities() {
                 </div>
               </article>
             ))}
+          </div>
+          <div className="mt-16">
+            <div className="text-center mb-8">
+              <Eyebrow>Virtual Experience</Eyebrow>
+              <h2 className="heading-lg mt-4">360° <em>Virtual Tour</em></h2>
+              <p className="mt-4 max-w-2xl mx-auto leading-7 text-muted">Explore Tuna Bay Resort in immersive 360° view.</p>
+            </div>
+            <div className="rounded-[2rem] overflow-hidden shadow-xl h-[400px] md:h-[550px]">
+              <ReactPhotoSphereViewer 
+                src="/images/tuna-bay-waterfront.png" 
+                height={'100%'} 
+                width={'100%'}
+              />
+            </div>
           </div>
         </div>
       </section>
