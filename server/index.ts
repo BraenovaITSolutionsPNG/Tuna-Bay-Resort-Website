@@ -16,8 +16,8 @@ app.use(cors({
   origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3004', 'http://localhost:8443'],
   credentials: true
 }))
-app.use(express.json({ limit: '10kb' }))
-app.use(express.urlencoded({ extended: true, limit: '10kb' }))
+app.use(express.json({ limit: '5mb' }))
+app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 
 // Rate limiting
 const limiter = rateLimit({

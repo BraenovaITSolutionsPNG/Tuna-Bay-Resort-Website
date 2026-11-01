@@ -51,27 +51,29 @@ export default function AdminGallery() {
       <p className="mt-1 text-muted">Manage gallery images.</p>
 
       <form onSubmit={addImage} className="mt-6 flex flex-wrap gap-3 rounded-2xl bg-white p-5 shadow">
-        <input
-          type="text"
-          placeholder="Image URL"
-          value={src}
-          onChange={e => setSrc(e.target.value)}
-          className="flex-1 rounded-xl border border-ocean/20 px-4 py-2 text-sm focus:ring-2 focus:ring-ocean outline-none"
-          required
-        />
+        <div className="w-full">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+          <input type="file" accept="image/*" onChange={e => {
+            const file = e.target.files?.[0]
+            if (!file) return
+            const reader = new FileReader()
+            reader.onload = () => setSrc(reader.result as string)
+            reader.readAsDataURL(file)
+          }} className="w-full rounded-xl border border-ocean/20 px-4 py-2 text-sm" required />
+        </div>
         <input
           type="text"
           placeholder="Title"
           value={title}
           onChange={e => setTitle(e.target.value)}
-          className="rounded-xl border border-ocean/20 px-4 py-2 text-sm focus:ring-2 focus:ring-ocean outline-none"
+          className="rounded-xl border border-ocean/20 px-4 py-2 text-sm"
         />
         <input
           type="text"
           placeholder="Alt text"
           value={alt}
           onChange={e => setAlt(e.target.value)}
-          className="rounded-xl border border-ocean/20 px-4 py-2 text-sm focus:ring-2 focus:ring-ocean outline-none"
+          className="rounded-xl border border-ocean/20 px-4 py-2 text-sm"
         />
         <button type="submit" className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white hover:bg-teal transition">
           Add Image

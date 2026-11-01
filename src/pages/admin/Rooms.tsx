@@ -62,8 +62,15 @@ export default function AdminRooms() {
           <input placeholder="e.g. K450/night" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="w-full rounded-xl border border-ocean/20 px-4 py-2 text-sm" required />
         </div>
         <div className="sm:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
-          <input placeholder="https://..." value={form.image} onChange={e => setForm({ ...form, image: e.target.value })} className="w-full rounded-xl border border-ocean/20 px-4 py-2 text-sm" />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+          <input type="file" accept="image/*" onChange={e => {
+            const file = e.target.files?.[0]
+            if (!file) return
+            const reader = new FileReader()
+            reader.onload = () => setForm({ ...form, image: reader.result as string })
+            reader.readAsDataURL(file)
+          }} className="w-full rounded-xl border border-ocean/20 px-4 py-2 text-sm" />
+          {form.image && <img src={form.image} alt="preview" className="mt-2 h-24 rounded-xl object-cover" />}
         </div>
         <div className="sm:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
