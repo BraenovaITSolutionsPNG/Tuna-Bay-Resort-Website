@@ -202,6 +202,37 @@ app.get('/api/menu', (req, res) => {
   res.json(db.prepare('SELECT * FROM menu_items').all())
 })
 
+app.post('/api/menu', authMiddleware, (req, res) => {
+  const { category, name, description, price } = req.body
+  if (!name || !price) return res.status(400).json({ error: 'Missing name or price' })
+  const result = db.prepare('INSERT INTO menu_items (category, name, description, price) VALUES (?, ?, ?, ?)').run(
+    String(category || 'dining').trim(),
+    String(name).trim(),
+    description ? String(description).trim() : null,
+    String(price).trim(),
+  )
+  res.json({ success: true, id: result.lastInsertRowid })
+})
+
+app.put('/api/menu/:id', authMiddleware, (req, res) => {
+  const { category, name, description, price } = req.body
+  const result = db.prepare('UPDATE menu_items SET category=?, name=?, description=?, price=? WHERE id=?').run(
+    String(category || 'dining').trim(),
+    String(name).trim(),
+    description ? String(description).trim() : null,
+    String(price).trim(),
+    req.params.id,
+  )
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found' })
+  res.json({ success: true })
+})
+
+app.delete('/api/menu/:id', authMiddleware, (req, res) => {
+  const result = db.prepare('DELETE FROM menu_items WHERE id = ?').run(req.params.id)
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found' })
+  res.json({ success: true })
+})
+
 // Gallery
 app.get('/api/gallery', (req, res) => {
   res.json(db.prepare('SELECT * FROM gallery_images').all())
