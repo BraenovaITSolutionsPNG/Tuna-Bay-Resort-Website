@@ -22,22 +22,26 @@ export default function Home() {
   return (
     <main className="overflow-x-hidden bg-sand text-ink">
       <Header variant="dark" />
-      <section className="relative flex min-h-[100svh] sm:min-h-[92svh] items-center sm:items-center bg-ocean pt-24 pb-12 sm:pt-36 sm:pb-8 text-white">
+      <section className="relative min-h-[100svh] bg-ocean text-white overflow-hidden">
         <img src={heroImage} alt="Aerial view of Tuna Bay Resort and its waterfront pool" className="absolute inset-0 size-full object-cover object-center" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,37,51,.75)_0%,rgba(5,37,51,.85)_40%,rgba(5,37,51,.92)_100%)] sm:bg-[linear-gradient(90deg,rgba(5,37,51,.94)_0%,rgba(5,37,51,.68)_48%,rgba(5,37,51,.18)_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(5,37,51,.8)_0%,transparent_60%)] sm:bg-[linear-gradient(0deg,rgba(5,37,51,.65)_0%,transparent_48%)]" />
-        <div className="page-wrap relative z-10 w-full">
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,37,51,.55)_0%,rgba(5,37,51,.92)_100%)] sm:bg-[linear-gradient(90deg,rgba(5,37,51,.94)_0%,rgba(5,37,51,.68)_48%,rgba(5,37,51,.18)_100%)]" />
+        <div className="relative z-10 flex flex-col justify-end sm:justify-center min-h-[100svh] page-wrap pb-10 sm:pb-8 pt-24 sm:pt-36">
           <div className="max-w-3xl">
-            <div className="mb-4 sm:mb-6 text-[10px] sm:text-xs font-bold uppercase tracking-[0.18em] sm:tracking-[0.23em] text-seafoam">
-              Taurama · Port Moresby
+            <div className="mb-3 sm:mb-6 flex items-center gap-2">
+              <span className="h-px w-6 bg-seafoam sm:w-10"></span>
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-seafoam">
+                Taurama · Port Moresby
+              </span>
             </div>
-            <h1 className="font-display text-3xl leading-[1.05] tracking-[-0.01em] xs:text-4xl sm:text-5xl sm:leading-[0.98] sm:tracking-[-0.035em] md:text-7xl lg:text-[5.5rem]">
-              Your Coastal Escape <em className="font-normal text-seafoam">Behind the Mangroves</em> of Taurama
+            <h1 className="font-display text-[2.5rem] leading-[1.05] tracking-[-0.02em] sm:text-5xl sm:leading-[0.98] sm:tracking-[-0.035em] md:text-7xl lg:text-[5.5rem]">
+              Your Coastal <em className="font-normal text-seafoam">Escape</em>
+              <br />
+              <span className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl text-white/90 font-display">Behind the Mangroves</span>
             </h1>
-            <p className="mt-4 sm:mt-6 max-w-2xl text-sm leading-6 text-white/85 sm:text-base sm:leading-7 md:text-lg">
+            <p className="mt-4 sm:mt-6 max-w-md sm:max-w-2xl text-sm leading-6 text-white/85 sm:text-base sm:leading-7 md:text-lg">
               Relaxing ocean views, fresh dining, and private function spaces just minutes from central Port Moresby.
             </p>
-            <div className="mt-6 sm:mt-8 flex flex-col w-full sm:w-auto gap-3 sm:flex-row">
+            <div className="mt-6 sm:mt-8 flex flex-col gap-3 sm:flex-row">
               <Link to="/menu" className="inline-flex items-center justify-center gap-2 rounded-full bg-coral px-6 sm:px-7 py-3 sm:py-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-coral-dark w-full sm:w-auto">
                 View Menu 
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
@@ -45,6 +49,10 @@ export default function Home() {
               <Link to="/booking" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/40 bg-white/10 px-6 sm:px-7 py-3 sm:py-4 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20 w-full sm:w-auto">
                 Reserve a Table / Function
               </Link>
+            </div>
+            <div className="mt-8 sm:mt-12 flex flex-wrap gap-x-6 gap-y-2 border-t border-white/20 pt-5 text-xs sm:text-sm text-white/70">
+              <span className="flex items-center gap-2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4 text-seafoam"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg> Open Fri–Sun</span>
+              <span className="flex items-center gap-2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4 text-seafoam"><path d="M3 18h18M5 14h14M8 14a4 4 0 0 1 8 0M12 3v3" /></svg> Sunset from 5:30pm</span>
             </div>
           </div>
         </div>
