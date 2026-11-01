@@ -46,7 +46,7 @@
   }
 
   .section-space {
-    padding-block: 5.5rem;
+    padding-block: 3.5rem;
   }
 
   .heading-lg {
@@ -108,11 +108,14 @@
   .page-wrap {
     width: min(100% - 3rem, 76rem);
   }
+  .section-space {
+    padding-block: 4.5rem;
+  }
 }
 
 @media (min-width: 1024px) {
   .section-space {
-    padding-block: 7.5rem;
+    padding-block: 6rem;
   }
 }
 

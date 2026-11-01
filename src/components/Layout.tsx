@@ -14,28 +14,28 @@ const navItems = [
 export function Header({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
   return (
     <header className={`border-b ${variant === 'dark' ? 'border-white/15 bg-ocean/90 backdrop-blur-sm' : 'border-ocean/10 bg-white'}`}>
-      <div className="page-wrap flex h-20 items-center justify-between">
-        <Link to="/" className="flex items-center gap-3" aria-label="Tuna Bay Resort home">
-          <span className={`grid size-11 place-items-center rounded-full ${variant === 'dark' ? 'border border-white/35 bg-white/10' : 'bg-seafoam'}`}>
-            <svg viewBox="0 0 24 24" fill="none" stroke={variant === 'dark' ? 'white' : '#052633'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-6" aria-hidden="true">
+      <div className="page-wrap flex h-16 sm:h-20 items-center justify-between">
+        <Link to="/" className="flex items-center gap-2 sm:gap-3" aria-label="Tuna Bay Resort home">
+          <span className={`grid size-9 sm:size-11 place-items-center rounded-full ${variant === 'dark' ? 'border border-white/35 bg-white/10' : 'bg-seafoam'}`}>
+            <svg viewBox="0 0 24 24" fill="none" stroke={variant === 'dark' ? 'white' : '#052633'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-5 sm:size-6" aria-hidden="true">
               <path d="M2 8c3-3 5 3 8 0s5 3 8 0 4 0 4 0M2 14c3-3 5 3 8 0s5 3 8 0 4 0 4 0M4 20c2-2 4 2 6 0s4 2 6 0 4 0 4 0" />
             </svg>
           </span>
-          <span className={`font-display text-xl leading-none tracking-wide ${variant === 'dark' ? 'text-white' : 'text-ocean'}`}>
+          <span className={`font-display text-lg sm:text-xl leading-none tracking-wide ${variant === 'dark' ? 'text-white' : 'text-ocean'}`}>
             Tuna Bay 
-            <small className={`mt-1 block font-sans text-[0.6rem] font-semibold uppercase tracking-[0.28em] ${variant === 'dark' ? 'text-white/70' : 'text-teal'}`}>
+            <small className={`mt-1 block font-sans text-[0.5rem] sm:text-[0.6rem] font-semibold uppercase tracking-[0.2em] sm:tracking-[0.28em] ${variant === 'dark' ? 'text-white/70' : 'text-teal'}`}>
               Resort · Taurama
             </small>
           </span>
         </Link>
-        <nav className="hidden items-center gap-6 lg:flex" aria-label="Main navigation">
+        <nav className="hidden items-center gap-4 xl:gap-6 lg:flex" aria-label="Main navigation">
           {navItems.map(([label, href]) => (
-            <Link key={label} to={href} className={`text-sm font-medium transition ${variant === 'dark' ? 'text-white/80 hover:text-white' : 'text-ocean/80 hover:text-ocean'}`}>
+            <Link key={label} to={href} className={`text-xs xl:text-sm font-medium transition ${variant === 'dark' ? 'text-white/80 hover:text-white' : 'text-ocean/80 hover:text-ocean'}`}>
               {label}
             </Link>
           ))}
         </nav>
-        <Link to="/booking" className={`hidden rounded-full px-6 py-3 text-sm font-bold transition hover:-translate-y-0.5 sm:inline-flex ${variant === 'dark' ? 'bg-coral text-white shadow-lg shadow-black/10 hover:bg-coral-dark' : 'bg-coral text-white hover:bg-coral-dark'}`}>
+        <Link to="/booking" className={`hidden rounded-full px-4 xl:px-6 py-2 xl:py-3 text-xs xl:text-sm font-bold transition hover:-translate-y-0.5 sm:inline-flex ${variant === 'dark' ? 'bg-coral text-white shadow-lg shadow-black/10 hover:bg-coral-dark' : 'bg-coral text-white hover:bg-coral-dark'}`}>
           Book Now
         </Link>
       </div>
