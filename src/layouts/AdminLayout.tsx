@@ -2,15 +2,15 @@ import { Link, Outlet, useLocation } from 'react-router-dom'
 
 const adminNav = [
   { label: 'Dashboard', path: '/admin' },
-  { label: 'Bookings', path: '/admin?tab=bookings' },
-  { label: 'Rooms', path: '/admin?tab=rooms' },
-  { label: 'Facilities', path: '/admin?tab=facilities' },
-  { label: 'Menu', path: '/admin?tab=menu' },
+  { label: 'Bookings', path: '/admin/bookings' },
+  { label: 'Rooms', path: '/admin/rooms' },
+  { label: 'Facilities', path: '/admin/facilities' },
+  { label: 'Menu', path: '/admin/menu' },
 ]
 
 export default function AdminLayout() {
   const location = useLocation()
-  const current = location.pathname + location.search
+  const current = location.pathname
   const logout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')

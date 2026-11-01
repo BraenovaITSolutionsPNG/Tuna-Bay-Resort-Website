@@ -1,105 +1,35 @@
 import { useState, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid } from 'recharts'
 
 interface Booking {
   id: number
   name: string
-  phone: string
   booking_type: string
   date: string
-  checkout: string | null
-  party: string | null
-  room: string | null
-  rooms: string | null
-  message: string | null
   status: string
-  created_at: string
 }
 
-interface Room {
-  id: number
-  name: string
-  description: string
-  price: string
-  features: string
-  image: string
-}
-
-interface Facility {
-  id: number
-  title: string
-  text: string
-  image: string
-}
-
-interface MenuItem {
-  id: number
-  category: string
-  name: string
-  description: string
-  price: string
-}
+interface Room { id: number }
+interface Facility { id: number }
+interface MenuItem { id: number }
 
 export default function AdminOverview() {
-  const [searchParams] = useSearchParams()
-  const tab = searchParams.get('tab') || 'bookings'
   const [bookings, setBookings] = useState<Booking[]>([])
   const [rooms, setRooms] = useState<Room[]>([])
   const [facilities, setFacilities] = useState<Facility[]>([])
   const [menu, setMenu] = useState<MenuItem[]>([])
 
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-
-  const reloadBookings = () => {
+  useEffect(() => {
     const token = localStorage.getItem('token')
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {}
     fetch('/api/bookings', { headers })
-      .then(r => r.json())
-      .then(setBookings)
-      .catch(() => {})
-  }
-
-  useEffect(() => {
-    reloadBookings()
-    fetch('/api/rooms').then(r => r.json()).then(setRooms).catch(() => {})
-    fetch('/api/facilities').then(r => r.json()).then(setFacilities).catch(() => {})
-    fetch('/api/menu').then(r => r.json()).then(setMenu).catch(() => {})
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setBookings(Array.isArray(data) ? data : []))
+      .catch(() => setBookings([]))
+    fetch('/api/rooms').then(r => r.ok ? r.json() : []).then(d => setRooms(Array.isArray(d) ? d : [])).catch(() => setRooms([]))
+    fetch('/api/facilities').then(r => r.ok ? r.json() : []).then(d => setFacilities(Array.isArray(d) ? d : [])).catch(() => setFacilities([]))
+    fetch('/api/menu').then(r => r.ok ? r.json() : []).then(d => setMenu(Array.isArray(d) ? d : [])).catch(() => setMenu([]))
   }, [])
-
-  const updateStatus = async (id: number, status: string) => {
-    const token = localStorage.getItem('token')
-    await fetch(`/api/bookings/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ status }),
-    })
-    reloadBookings()
-  }
-
-  const deleteBooking = async (id: number) => {
-    if (!confirm('Delete this booking?')) return
-    const token = localStorage.getItem('token')
-    await fetch(`/api/bookings/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    })
-    reloadBookings()
-  }
-
-  const filteredBookings = bookings.filter(b => {
-    const matchesSearch = b.name.toLowerCase().includes(search.toLowerCase()) || b.phone.includes(search)
-    const matchesStatus = statusFilter === 'all' || b.status === statusFilter
-    return matchesSearch && matchesStatus
-  })
-
-  const tabs = [
-    { key: 'bookings', label: 'Bookings' },
-    { key: 'rooms', label: 'Rooms' },
-    { key: 'facilities', label: 'Facilities' },
-    { key: 'menu', label: 'Menu' },
-  ] as const
 
   const bookingsByType = Object.entries(
     bookings.reduce((acc, b) => {
@@ -122,10 +52,9 @@ export default function AdminOverview() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#052633]">Admin Dashboard</h1>
-      <p className="mt-1 text-muted">Manage bookings, rooms, facilities and menu items.</p>
+      <h1 className="text-2xl font-bold text-[#052633]">Dashboard</h1>
+      <p className="mt-1 text-muted">Overview of resort activity.</p>
 
-      {/* Summary cards */}
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="rounded-2xl bg-white p-5 shadow">
           <p className="text-sm text-muted">Total Bookings</p>
@@ -145,7 +74,6 @@ export default function AdminOverview() {
         </div>
       </div>
 
-      {/* Charts */}
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <div className="rounded-2xl bg-white p-5 shadow">
           <h3 className="font-display text-lg text-ocean mb-4">Bookings by Type</h3>
@@ -183,137 +111,6 @@ export default function AdminOverview() {
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </div>
-
-      <div className="mt-6 flex flex-wrap gap-2">
-        {tabs.map(t => (
-          <a
-            key={t.key}
-            href={`/admin?tab=${t.key}`}
-            className={`rounded-full px-5 py-2 text-sm font-bold transition ${tab === t.key ? 'bg-ocean text-white' : 'bg-white text-ocean border border-ocean/20'}`}
-          >
-            {t.label}
-          </a>
-        ))}
-      </div>
-
-      <div className="mt-6">
-            {tab === 'bookings' && (
-              <div>
-                <div className="mb-4 flex flex-wrap gap-3">
-                  <input
-                    type="text"
-                    placeholder="Search by name or phone..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    className="rounded-xl border border-ocean/20 px-4 py-2 text-sm focus:ring-2 focus:ring-ocean outline-none"
-                  />
-                  <select
-                    value={statusFilter}
-                    onChange={e => setStatusFilter(e.target.value)}
-                    className="rounded-xl border border-ocean/20 px-4 py-2 text-sm"
-                  >
-                    <option value="all">All statuses</option>
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                  <button onClick={reloadBookings} className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white hover:bg-teal transition">
-                    Refresh
-                  </button>
-                </div>
-                <div className="overflow-x-auto rounded-2xl bg-white shadow">
-                  <table className="w-full text-sm">
-                    <thead className="bg-ocean text-white">
-                      <tr>
-                        <th className="px-4 py-3 text-left">ID</th>
-                        <th className="px-4 py-3 text-left">Name</th>
-                        <th className="px-4 py-3 text-left">Phone</th>
-                        <th className="px-4 py-3 text-left">Type</th>
-                        <th className="px-4 py-3 text-left">Date</th>
-                        <th className="px-4 py-3 text-left">Room</th>
-                        <th className="px-4 py-3 text-left">Status</th>
-                        <th className="px-4 py-3 text-left">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredBookings.map(b => (
-                        <tr key={b.id} className="border-t border-ocean/10">
-                          <td className="px-4 py-3">{b.id}</td>
-                          <td className="px-4 py-3">{b.name}</td>
-                          <td className="px-4 py-3">{b.phone}</td>
-                          <td className="px-4 py-3">{b.booking_type}</td>
-                          <td className="px-4 py-3">{b.date}</td>
-                          <td className="px-4 py-3">{b.room || '-'}</td>
-                          <td className="px-4 py-3">
-                            <span className={`rounded-full px-2 py-1 text-xs font-bold ${b.status === 'confirmed' ? 'bg-green-100 text-green-700' : b.status === 'cancelled' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                              {b.status}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 flex gap-2">
-                            <button onClick={() => updateStatus(b.id, 'confirmed')} className="text-xs text-green-600 hover:underline">Confirm</button>
-                            <button onClick={() => updateStatus(b.id, 'cancelled')} className="text-xs text-red-600 hover:underline">Cancel</button>
-                            <button onClick={() => deleteBooking(b.id)} className="text-xs text-gray-500 hover:underline">Delete</button>
-                          </td>
-                        </tr>
-                      ))}
-                      {filteredBookings.length === 0 && (
-                        <tr><td colSpan={8} className="px-4 py-6 text-center text-muted">No bookings found.</td></tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-        {tab === 'rooms' && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {rooms.map(r => (
-              <div key={r.id} className="rounded-2xl bg-white p-5 shadow">
-                <h3 className="font-display text-lg text-ocean">{r.name}</h3>
-                <p className="mt-1 text-sm text-muted">{r.description}</p>
-                <p className="mt-2 font-bold text-coral">{r.price}</p>
-                <p className="mt-1 text-xs text-muted">{r.features}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {tab === 'facilities' && (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {facilities.map(f => (
-              <div key={f.id} className="rounded-2xl bg-white p-5 shadow">
-                <h3 className="font-display text-lg text-ocean">{f.title}</h3>
-                <p className="mt-1 text-sm text-muted">{f.text}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {tab === 'menu' && (
-          <div className="overflow-x-auto rounded-2xl bg-white shadow">
-            <table className="w-full text-sm">
-              <thead className="bg-ocean text-white">
-                <tr>
-                  <th className="px-4 py-3 text-left">Category</th>
-                  <th className="px-4 py-3 text-left">Name</th>
-                  <th className="px-4 py-3 text-left">Description</th>
-                  <th className="px-4 py-3 text-left">Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {menu.map(m => (
-                  <tr key={m.id} className="border-t border-ocean/10">
-                    <td className="px-4 py-3">{m.category}</td>
-                    <td className="px-4 py-3">{m.name}</td>
-                    <td className="px-4 py-3">{m.description}</td>
-                    <td className="px-4 py-3">{m.price}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
     </div>
   )

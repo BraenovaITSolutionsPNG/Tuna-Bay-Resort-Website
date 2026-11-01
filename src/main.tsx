@@ -12,6 +12,10 @@ import Location from './pages/Location'
 import Sitemap from './pages/Sitemap'
 import AdminLayout from './layouts/AdminLayout'
 import AdminOverview from './pages/admin/Overview'
+import AdminBookings from './pages/admin/Bookings'
+import AdminRooms from './pages/admin/Rooms'
+import AdminFacilities from './pages/admin/Facilities'
+import AdminMenu from './pages/admin/Menu'
 import Staff from './pages/Staff'
 import { LoginPage } from './components/ui/sign-in-page'
 import './index.css'
@@ -32,6 +36,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/login" element={<LoginPage />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminOverview />} />
+          <Route path="bookings" element={<AdminBookings />} />
+          <Route path="rooms" element={<AdminRooms />} />
+          <Route path="facilities" element={<AdminFacilities />} />
+          <Route path="menu" element={<AdminMenu />} />
         </Route>
         <Route path="/admin/login" element={<LoginPage role="admin" />} />
         <Route path="/staff/login" element={<LoginPage role="staff" />} />
