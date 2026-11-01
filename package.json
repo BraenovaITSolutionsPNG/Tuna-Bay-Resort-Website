@@ -8,9 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "format": "oxfmt",
-    "server": "nodemon server/index.ts",
-    "cf:dev": "wrangler pages dev dist",
-    "cf:deploy": "npm run build && wrangler pages deploy dist"
+    "server": "nodemon server/index.ts"
   },
   "dependencies": {
     "cors": "^2.8.6",
@@ -35,7 +33,6 @@
     "tailwindcss": "^4.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.0",
-    "vite": "^8.0.5",
-    "wrangler": "^4.156.0"
+    "vite": "^8.0.5"
   }
 }
