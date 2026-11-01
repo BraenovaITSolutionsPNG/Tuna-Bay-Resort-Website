@@ -409,6 +409,18 @@ app.post('/api/settings', authMiddleware, (req, res) => {
   res.json({ success: true })
 })
 
+// Availability check
+app.get('/api/availability', (req, res) => {
+  const { room, checkin, checkout } = req.query
+  if (!room || !checkin || !checkout) return res.status(400).json({ error: 'Missing params' })
+  const conflicts = db.prepare(`
+    SELECT COUNT(*) as c FROM bookings
+    WHERE room = ? AND status != 'cancelled'
+      AND date < ? AND (checkout IS NULL OR checkout > ?)
+  `).get(room, checkout, checkin) as { c: number }
+  res.json({ available: conflicts.c === 0, conflicts: conflicts.c })
+})
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
