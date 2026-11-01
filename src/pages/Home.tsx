@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Header, Footer, Eyebrow } from '../components/Layout'
+import ReviewForm from '../components/ReviewForm'
 
 const heroImage = '/images/tuna-bay-hero.jpg'
 const aboutImage = '/images/tuna-bay-waterfront.png'
@@ -151,6 +152,13 @@ export default function Home() {
                 <p className="mt-4 font-display text-ocean">{t.name}</p>
               </div>
             ))}
+          </div>
+
+          <div className="mt-12 max-w-xl mx-auto">
+            <h3 className="font-display text-xl text-ocean text-center mb-4">Leave a review</h3>
+            <ReviewForm onSubmitted={() => {
+              fetch('/api/testimonials').then(r => r.ok ? r.json() : []).then(d => setTestimonials(Array.isArray(d) ? d : [])).catch(() => {})
+            }} />
           </div>
         </div>
       </section>

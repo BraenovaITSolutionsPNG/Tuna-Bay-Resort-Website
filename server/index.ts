@@ -219,7 +219,7 @@ app.get('/api/testimonials', async (req, res) => {
   res.json(rows)
 })
 
-app.post('/api/testimonials', authMiddleware, async (req, res) => {
+app.post('/api/testimonials', async (req, res) => {
   const { name, text, rating } = req.body
   if (!name || !text) return res.status(400).json({ error: 'Missing name or text' })
   const rows = await sql`
