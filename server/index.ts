@@ -107,6 +107,24 @@ app.get('/api/bookings', authMiddleware, (req, res) => {
   res.json(rows)
 })
 
+// Update booking status
+app.put('/api/bookings/:id', authMiddleware, (req, res) => {
+  const { status } = req.body
+  if (!['pending', 'confirmed', 'cancelled'].includes(status)) {
+    return res.status(400).json({ error: 'Invalid status' })
+  }
+  const result = db.prepare('UPDATE bookings SET status = ? WHERE id = ?').run(status, req.params.id)
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found' })
+  res.json({ success: true })
+})
+
+// Delete booking
+app.delete('/api/bookings/:id', authMiddleware, (req, res) => {
+  const result = db.prepare('DELETE FROM bookings WHERE id = ?').run(req.params.id)
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found' })
+  res.json({ success: true })
+})
+
 // Rooms
 app.get('/api/rooms', (req, res) => {
   res.json(db.prepare('SELECT * FROM rooms').all())
