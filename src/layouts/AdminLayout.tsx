@@ -43,6 +43,7 @@ export default function AdminLayout() {
     { Icon: Tag, title: 'Facilities', path: '/admin/facilities' },
     { Icon: UtensilsCrossed, title: 'Menu', path: '/admin/menu' },
     { Icon: ImageIcon, title: 'Gallery', path: '/admin/gallery' },
+    { Icon: Users, title: 'Testimonials', path: '/admin/testimonials' },
     { Icon: Monitor, title: 'View Site', path: '/' },
   ]
 

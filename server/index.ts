@@ -343,8 +343,26 @@ app.delete('/api/gallery/:id', authMiddleware, (req, res) => {
   res.json({ success: true })
 })
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+// Testimonials
+app.get('/api/testimonials', (req, res) => {
+  res.json(db.prepare('SELECT * FROM testimonials').all())
+})
+
+app.post('/api/testimonials', authMiddleware, (req, res) => {
+  const { name, text, rating } = req.body
+  if (!name || !text) return res.status(400).json({ error: 'Missing name or text' })
+  const result = db.prepare('INSERT INTO testimonials (name, text, rating) VALUES (?, ?, ?)').run(
+    String(name).trim(),
+    String(text).trim(),
+    rating ? Number(rating) : 5,
+  )
+  res.json({ success: true, id: result.lastInsertRowid })
+})
+
+app.delete('/api/testimonials/:id', authMiddleware, (req, res) => {
+  const result = db.prepare('DELETE FROM testimonials WHERE id = ?').run(req.params.id)
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found' })
+  res.json({ success: true })
 })
 
 export default app

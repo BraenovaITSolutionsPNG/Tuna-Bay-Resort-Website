@@ -10,6 +10,7 @@ import Rooms from './pages/Rooms'
 import Booking from './pages/Booking'
 import Location from './pages/Location'
 import Sitemap from './pages/Sitemap'
+import NotFound from './pages/NotFound'
 import AdminLayout from './layouts/AdminLayout'
 import AdminOverview from './pages/admin/Overview'
 import AdminBookings from './pages/admin/Bookings'
@@ -17,6 +18,7 @@ import AdminRooms from './pages/admin/Rooms'
 import AdminFacilities from './pages/admin/Facilities'
 import AdminMenu from './pages/admin/Menu'
 import AdminGallery from './pages/admin/Gallery'
+import AdminTestimonials from './pages/admin/Testimonials'
 import Staff from './pages/Staff'
 import { LoginPage } from './components/ui/sign-in-page'
 import './index.css'
@@ -34,6 +36,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/booking" element={<Booking />} />
         <Route path="/location" element={<Location />} />
         <Route path="/sitemap" element={<Sitemap />} />
+        <Route path="*" element={<NotFound />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminOverview />} />
@@ -42,6 +45,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="facilities" element={<AdminFacilities />} />
           <Route path="menu" element={<AdminMenu />} />
           <Route path="gallery" element={<AdminGallery />} />
+          <Route path="testimonials" element={<AdminTestimonials />} />
         </Route>
         <Route path="/admin/login" element={<LoginPage role="admin" />} />
         <Route path="/staff/login" element={<LoginPage role="staff" />} />

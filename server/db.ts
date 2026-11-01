@@ -209,4 +209,16 @@ if (bookingCount.c === 0) {
   }
 }
 
+// Seed testimonials if empty
+const testCount = db.prepare('SELECT COUNT(*) as c FROM testimonials').get() as { c: number }
+if (testCount.c === 0) {
+  const items = [
+    { name: 'Sarah K.', text: 'A wonderful escape from the city. The seafood was incredible and the staff were so welcoming.', rating: 5 },
+    { name: 'Mark T.', text: 'Perfect venue for our family gathering. The pool area is great for kids.', rating: 5 },
+    { name: 'Grace M.', text: 'Beautiful sunset views from the jetty. Will definitely come back.', rating: 4 },
+  ]
+  const stmt = db.prepare('INSERT INTO testimonials (name, text, rating) VALUES (?, ?, ?)')
+  items.forEach(t => stmt.run(t.name, t.text, t.rating))
+}
+
 export default db

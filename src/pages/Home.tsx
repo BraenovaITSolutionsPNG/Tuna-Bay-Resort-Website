@@ -1,8 +1,16 @@
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Header, Footer, Eyebrow } from '../components/Layout'
 
 const heroImage = '/images/tuna-bay-hero.jpg'
 const aboutImage = '/images/tuna-bay-waterfront.png'
+
+interface Testimonial {
+  id: number
+  name: string
+  text: string
+  rating: number
+}
 
 const offerings = [
   { title: 'Coastal Dining & Bar', text: 'Fresh seafood, flame-grilled favourites and ice-cold drinks served right by the water.', href: '/menu' },
@@ -19,6 +27,15 @@ const facilities = [
 ]
 
 export default function Home() {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
+
+  useEffect(() => {
+    fetch('/api/testimonials')
+      .then(r => r.ok ? r.json() : [])
+      .then(d => setTestimonials(Array.isArray(d) ? d : []))
+      .catch(() => setTestimonials([]))
+  }, [])
+
   return (
     <main className="overflow-x-hidden bg-sand text-ink">
       <Header variant="dark" />
@@ -116,6 +133,24 @@ export default function Home() {
               View All Facilities
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
             </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="section-space bg-white">
+        <div className="page-wrap">
+          <div className="text-center mb-12">
+            <Eyebrow>Guest Reviews</Eyebrow>
+            <h2 className="heading-lg mt-4">What our guests <em>say</em></h2>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {testimonials.map(t => (
+              <div key={t.id} className="rounded-3xl border border-ocean/10 bg-sand-light p-6 shadow-[0_12px_35px_rgba(8,49,64,.05)]">
+                <div className="text-yellow-500">{'★'.repeat(t.rating)}</div>
+                <p className="mt-3 text-sm leading-6 text-muted italic">"{t.text}"</p>
+                <p className="mt-4 font-display text-ocean">{t.name}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
