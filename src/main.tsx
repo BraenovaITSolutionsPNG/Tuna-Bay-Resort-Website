@@ -9,6 +9,7 @@ import Gallery from './pages/Gallery'
 import Rooms from './pages/Rooms'
 import Booking from './pages/Booking'
 import Location from './pages/Location'
+import Sitemap from './pages/Sitemap'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -23,6 +24,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/rooms" element={<Rooms />} />
         <Route path="/booking" element={<Booking />} />
         <Route path="/location" element={<Location />} />
+        <Route path="/sitemap" element={<Sitemap />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,
