@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Eye, EyeOff, ArrowLeft, Shield, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -11,13 +11,18 @@ interface LoginPageProps {
 export function LoginPage({ role }: LoginPageProps = {}) {
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState('')
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     rememberMe: false
   })
 
-  const isAdmin = role === 'admin'
+  useEffect(() => {
+    (window as unknown as { onTurnstileSuccess: (token: string) => void }).onTurnstileSuccess = (token: string) => {
+      setTurnstileToken(token)
+    }
+  }, [])
   const isStaff = role === 'staff'
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,8 +33,27 @@ export function LoginPage({ role }: LoginPageProps = {}) {
     }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!turnstileToken) {
+      alert('Please complete the verification.')
+      return
+    }
+    try {
+      const res = await fetch('/api/verify-turnstile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: turnstileToken }),
+      })
+      const data = await res.json()
+      if (!data.success) {
+        alert('Verification failed. Please try again.')
+        return
+      }
+    } catch {
+      alert('Verification error.')
+      return
+    }
     console.log('Login submitted:', { ...formData, role })
     if (isAdmin) navigate('/admin')
     else if (isStaff) navigate('/staff')
@@ -159,13 +183,14 @@ export function LoginPage({ role }: LoginPageProps = {}) {
               </button>
             </div>
 
-            {/* Submit */}
-            <button
-              type="submit"
-              className="w-full bg-black text-white py-3 px-4 rounded-xl font-medium hover:bg-gray-800 transition-colors"
-            >
-              Sign In
-            </button>
+            {/* Turnstile */}
+            <div className="flex justify-center">
+              <div
+                className="cf-turnstile"
+                data-sitekey="1x00000000000000000000AA"
+                data-callback="onTurnstileSuccess"
+              ></div>
+            </div>
 
             {/* Divider */}
             <div className="relative my-6">
