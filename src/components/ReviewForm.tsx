@@ -25,7 +25,7 @@ export default function ReviewForm({ onSubmitted, onClose }: { onSubmitted: () =
   }
 
   return (
-    <form onSubmit={submit} className="grid gap-3 rounded-2xl bg-white p-5 shadow relative">
+    <form onSubmit={submit} className="grid gap-3 rounded-2xl bg-white p-5 pt-10 shadow relative">
       <button type="button" onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl leading-none" aria-label="Close">×</button>
       <input value={name} onChange={e => setName(e.target.value)} placeholder="Your name" className="rounded-xl border border-ocean/20 px-4 py-2 text-sm" required />
       <select value={rating} onChange={e => setRating(Number(e.target.value))} className="rounded-xl border border-ocean/20 px-4 py-2 text-sm">
