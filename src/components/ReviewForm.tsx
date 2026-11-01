@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function ReviewForm({ onSubmitted }: { onSubmitted: () => void }) {
+export default function ReviewForm({ onSubmitted, onClose }: { onSubmitted: () => void; onClose: () => void }) {
   const [name, setName] = useState('')
   const [text, setText] = useState('')
   const [rating, setRating] = useState(5)
@@ -25,7 +25,8 @@ export default function ReviewForm({ onSubmitted }: { onSubmitted: () => void })
   }
 
   return (
-    <form onSubmit={submit} className="grid gap-3 rounded-2xl bg-white p-5 shadow">
+    <form onSubmit={submit} className="grid gap-3 rounded-2xl bg-white p-5 shadow relative">
+      <button type="button" onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl leading-none" aria-label="Close">×</button>
       <input value={name} onChange={e => setName(e.target.value)} placeholder="Your name" className="rounded-xl border border-ocean/20 px-4 py-2 text-sm" required />
       <select value={rating} onChange={e => setRating(Number(e.target.value))} className="rounded-xl border border-ocean/20 px-4 py-2 text-sm">
         {[5, 4, 3, 2, 1].map(r => <option key={r} value={r}>{r} stars</option>)}

@@ -166,10 +166,13 @@ export default function Home() {
                 </button>
               </div>
             ) : (
-              <ReviewForm onSubmitted={() => {
-                setShowReviewForm(false)
-                fetch('/api/testimonials').then(r => r.ok ? r.json() : []).then(d => setTestimonials(Array.isArray(d) ? d : [])).catch(() => {})
-              }} />
+              <ReviewForm
+                onSubmitted={() => {
+                  setShowReviewForm(false)
+                  fetch('/api/testimonials').then(r => r.ok ? r.json() : []).then(d => setTestimonials(Array.isArray(d) ? d : [])).catch(() => {})
+                }}
+                onClose={() => setShowReviewForm(false)}
+              />
             )}
           </div>
         </div>
