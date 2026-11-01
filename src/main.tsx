@@ -10,6 +10,9 @@ import Rooms from './pages/Rooms'
 import Booking from './pages/Booking'
 import Location from './pages/Location'
 import Sitemap from './pages/Sitemap'
+import Admin from './pages/Admin'
+import Staff from './pages/Staff'
+import { LoginPage } from './components/ui/sign-in-page'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -25,6 +28,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/booking" element={<Booking />} />
         <Route path="/location" element={<Location />} />
         <Route path="/sitemap" element={<Sitemap />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/admin/login" element={<LoginPage role="admin" />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/staff/login" element={<LoginPage role="staff" />} />
+        <Route path="/staff" element={<Staff />} />
       </Routes>
     </BrowserRouter>
   </React.StrictMode>,
