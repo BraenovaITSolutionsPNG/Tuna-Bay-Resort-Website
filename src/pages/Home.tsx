@@ -78,7 +78,7 @@ export default function Home() {
 
       <section className="section-space bg-white">
         <div className="page-wrap">
-          <div className="text-center mb-12">
+          <div className="mb-12">
             <Eyebrow>Eat · Celebrate · Unwind</Eyebrow>
             <h2 className="heading-lg mt-4">Everything you need for a <em>day by the bay.</em></h2>
           </div>
