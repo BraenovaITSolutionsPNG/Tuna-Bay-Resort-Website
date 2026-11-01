@@ -135,8 +135,9 @@ export function Footer() {
             </ul>
           </div>
         </div>
-        <div className="mt-10 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-10 flex flex-col items-center gap-2 border-t border-white/10 pt-6 text-xs text-white/40 sm:flex-row sm:justify-center">
           <span>© {new Date().getFullYear()} Tuna Bay Resort. All rights reserved.</span>
+          <span className="hidden sm:inline">·</span>
           <span>Taurama · Port Moresby · Papua New Guinea</span>
         </div>
       </div>
