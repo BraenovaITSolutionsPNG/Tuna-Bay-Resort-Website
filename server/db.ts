@@ -79,6 +79,13 @@ db.exec(`
   );
 `)
 
+// Migration: add status column if missing
+try {
+  db.exec("ALTER TABLE bookings ADD COLUMN status TEXT DEFAULT 'pending'")
+} catch (e) {
+  // column already exists
+}
+
 // Seed default admin/staff if none exist
 const userCount = db.prepare('SELECT COUNT(*) as c FROM users').get() as { c: number }
 if (userCount.c === 0) {
@@ -151,6 +158,31 @@ if (galCount.c === 0) {
   ]
   const stmt = db.prepare('INSERT INTO gallery_images (src, alt, title) VALUES (?, ?, ?)')
   images.forEach(g => stmt.run(g.src, g.alt, g.title))
+}
+
+// Seed test bookings if empty
+const bookingCount = db.prepare('SELECT COUNT(*) as c FROM bookings').get() as { c: number }
+if (bookingCount.c === 0) {
+  const types = ['room', 'table', 'function', 'day-pass', 'general']
+  const rooms = ['Standard Room', 'Deluxe Room', 'Ocean View Suite', 'Family Room', 'Beachfront Villa']
+  const stmt = db.prepare('INSERT INTO bookings (name, phone, booking_type, date, checkout, party, room, rooms, message, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+  const names = ['John Doe', 'Jane Smith', 'Peter Kalu', 'Mary Tama', 'David Ora', 'Sarah Numa', 'James Kila', 'Grace Moka', 'Tom Hiri', 'Lisa Buka', 'Paul Raga', 'Anna Kone', 'Mark Saea', 'Ruth Igo', 'Steve Puka']
+  for (let i = 0; i < 25; i++) {
+    const type = types[i % types.length]
+    const isRoom = type === 'room'
+    stmt.run(
+      names[i % names.length],
+      '+675 7' + Math.floor(Math.random() * 9000000 + 1000000),
+      type,
+      '2026-11-' + String((i % 28) + 1).padStart(2, '0'),
+      isRoom ? '2026-11-' + String((i % 28) + 3).padStart(2, '0') : null,
+      isRoom ? ((i % 4) + 1) + ' guests' : ((i % 8) + 2) + ' guests',
+      isRoom ? rooms[i % rooms.length] : null,
+      isRoom ? String((i % 3) + 1) : null,
+      i % 3 === 0 ? 'Looking forward to visiting!' : null,
+      i % 4 === 0 ? 'confirmed' : 'pending',
+    )
+  }
 }
 
 export default db
