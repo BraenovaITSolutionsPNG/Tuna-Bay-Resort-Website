@@ -13,12 +13,27 @@ function Field({ label, ...props }: { label: string; name: string; type?: string
 export default function Booking() {
   const [submitted, setSubmitted] = useState(false)
   const [bookingType, setBookingType] = useState('')
+  const [error, setError] = useState('')
 
-  const submitForm = (event: FormEvent<HTMLFormElement>) => {
+  const submitForm = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setSubmitted(true)
-    setBookingType('')
-    event.currentTarget.reset()
+    setError('')
+    const form = event.currentTarget
+    const data = new FormData(form)
+    const payload = Object.fromEntries(data.entries())
+    try {
+      const res = await fetch('/api/booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) throw new Error('Failed')
+      setSubmitted(true)
+      setBookingType('')
+      form.reset()
+    } catch {
+      setError('Something went wrong. Please try again.')
+    }
   }
 
   return (
@@ -32,6 +47,11 @@ export default function Booking() {
             <p className="mt-6 max-w-2xl mx-auto leading-7 text-muted">Tell us what you have in mind and our team will get back to confirm your booking.</p>
           </div>
           <div className="rounded-[2rem] bg-white shadow-[0_24px_80px_rgba(8,49,64,.1)] p-7 sm:p-10 lg:p-12">
+            {error && (
+              <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 sm:col-span-2">
+                {error}
+              </div>
+            )}
             {submitted ? (
               <div className="rounded-2xl border border-teal/20 bg-teal/8 p-6 text-center">
                 <strong className="font-display text-2xl text-teal">Thank you. We’ve received your enquiry.</strong>

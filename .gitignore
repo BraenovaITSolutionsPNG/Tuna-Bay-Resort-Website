@@ -21,3 +21,8 @@ logs/
 /.opencode-skills/
 
 .vercel
+
+data/
+*.db
+*.db-wal
+*.db-shm
