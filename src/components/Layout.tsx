@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { useState } from 'react'
 
 const navItems = [
   ['Home', '/'],
@@ -12,6 +13,7 @@ const navItems = [
 ]
 
 export function Header({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
+  const [mobileOpen, setMobileOpen] = useState(false)
   return (
     <header className={`border-b ${variant === 'dark' ? 'border-white/15 bg-ocean/90 backdrop-blur-sm' : 'border-ocean/10 bg-white'}`}>
       <div className="page-wrap flex h-16 sm:h-20 items-center justify-between">
@@ -35,10 +37,25 @@ export function Header({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
             </Link>
           ))}
         </nav>
-        <Link to="/booking" className={`hidden rounded-full px-4 xl:px-6 py-2 xl:py-3 text-xs xl:text-sm font-bold transition hover:-translate-y-0.5 sm:inline-flex ${variant === 'dark' ? 'bg-coral text-white shadow-lg shadow-black/10 hover:bg-coral-dark' : 'bg-coral text-white hover:bg-coral-dark'}`}>
-          Book Now
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link to="/booking" className={`hidden rounded-full px-4 xl:px-6 py-2 xl:py-3 text-xs xl:text-sm font-bold transition hover:-translate-y-0.5 sm:inline-flex ${variant === 'dark' ? 'bg-coral text-white shadow-lg shadow-black/10 hover:bg-coral-dark' : 'bg-coral text-white hover:bg-coral-dark'}`}>
+            Book Now
+          </Link>
+          <button onClick={() => setMobileOpen(!mobileOpen)} className={`grid size-9 sm:size-10 place-items-center rounded-full border lg:hidden ${variant === 'dark' ? 'border-white/30 text-white' : 'border-ocean/20 text-ocean'}`} aria-expanded={mobileOpen} aria-label="Toggle navigation">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-5">
+              {mobileOpen ? <path d="M6 6l12 12M6 18L18 6" /> : <><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></>}
+            </svg>
+          </button>
+        </div>
       </div>
+      {mobileOpen && (
+        <nav className={`mx-4 mb-4 flex flex-col rounded-2xl p-3 shadow-2xl lg:hidden ${variant === 'dark' ? 'bg-white text-ink' : 'bg-white text-ink'}`} aria-label="Mobile navigation">
+          {navItems.map(([label, href]) => (
+            <Link key={label} to={href} onClick={() => setMobileOpen(false)} className="rounded-xl px-4 py-3 font-semibold hover:bg-sand">{label}</Link>
+          ))}
+          <Link to="/booking" onClick={() => setMobileOpen(false)} className="mt-1 rounded-xl bg-ocean px-4 py-3 text-center font-bold text-white">Book Now</Link>
+        </nav>
+      )}
     </header>
   )
 }
