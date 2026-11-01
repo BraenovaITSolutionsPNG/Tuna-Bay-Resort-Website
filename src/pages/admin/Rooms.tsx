@@ -53,11 +53,26 @@ export default function AdminRooms() {
       <p className="mt-1 text-muted">Manage resort rooms and rates.</p>
 
       <form onSubmit={submit} className="mt-6 grid gap-3 rounded-2xl bg-white p-5 shadow sm:grid-cols-2">
-        <input placeholder="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="rounded-xl border border-ocean/20 px-4 py-2 text-sm" required />
-        <input placeholder="Price (e.g. K450/night)" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="rounded-xl border border-ocean/20 px-4 py-2 text-sm" required />
-        <input placeholder="Image URL" value={form.image} onChange={e => setForm({ ...form, image: e.target.value })} className="rounded-xl border border-ocean/20 px-4 py-2 text-sm sm:col-span-2" />
-        <textarea placeholder="Description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="rounded-xl border border-ocean/20 px-4 py-2 text-sm sm:col-span-2" rows={2} />
-        <input placeholder="Features (comma separated)" value={form.features} onChange={e => setForm({ ...form, features: e.target.value })} className="rounded-xl border border-ocean/20 px-4 py-2 text-sm sm:col-span-2" />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+          <input placeholder="Room name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full rounded-xl border border-ocean/20 px-4 py-2 text-sm" required />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+          <input placeholder="e.g. K450/night" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className="w-full rounded-xl border border-ocean/20 px-4 py-2 text-sm" required />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+          <input placeholder="https://..." value={form.image} onChange={e => setForm({ ...form, image: e.target.value })} className="w-full rounded-xl border border-ocean/20 px-4 py-2 text-sm" />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <textarea placeholder="Room description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full rounded-xl border border-ocean/20 px-4 py-2 text-sm" rows={2} />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Features (comma separated)</label>
+          <input placeholder="Queen Bed, WiFi, ..." value={form.features} onChange={e => setForm({ ...form, features: e.target.value })} className="w-full rounded-xl border border-ocean/20 px-4 py-2 text-sm" />
+        </div>
         <div className="sm:col-span-2 flex gap-2">
           <button type="submit" className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white hover:bg-teal transition">
             {editing ? 'Update Room' : 'Add Room'}
