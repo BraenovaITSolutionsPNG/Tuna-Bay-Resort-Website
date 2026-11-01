@@ -73,42 +73,69 @@ export function Footer() {
     ['Location', '/location'],
   ]
   return (
-    <footer className="bg-[#052633] py-10 text-white">
-      <div className="page-wrap">
-        <div className="flex flex-col gap-8 border-b border-white/10 pb-8 md:flex-row md:items-center md:justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-full bg-seafoam text-ocean">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true">
-                <path d="M2 8c3-3 5 3 8 0s5 3 8 0 4 0 4 0M2 14c3-3 5 3 8 0s5 3 8 0 4 0 4 0M4 20c2-2 4 2 6 0s4 2 6 0 4 0 4 0" />
-              </svg>
-            </span>
-            <span className="font-display text-xl">Tuna Bay Resort</span>
-          </Link>
-          <nav className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-white/65">
-            {navItems.map(([label, href]) => (
-              <Link key={label} to={href} className="hover:text-white flex items-center gap-1.5">
-                {label === 'Home' && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-4"><path d="M3 12l9-9 9 9" /><path d="M5 10v10h14V10" /></svg>}
-                {label === 'About' && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-4"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4M12 8h.01" /></svg>}
-                {label === 'Facilities' && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-4"><path d="M3 21h18M5 21V8l7-5 7 5v13" /><path d="M9 21v-6h6v6" /></svg>}
-                {label === 'Menu' && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-4"><path d="M4 6h16M4 12h16M4 18h16" /></svg>}
-                {label === 'Gallery' && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-4"><rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" /></svg>}
-                {label === 'Rooms' && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-4"><path d="M3 7v10M21 7v10M3 12h18M3 7h18" /></svg>}
-                {label === 'Booking' && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-4"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>}
-                {label === 'Location' && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-4"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg>}
-                {label}
-              </Link>
-            ))}
-          </nav>
-          <div className="flex gap-2">
-            <a href="#" aria-label="Facebook" className="grid size-10 place-items-center rounded-full border border-white/15 text-white/70 hover:bg-white/10 hover:text-white">
-              <svg viewBox="0 0 24 24" fill="currentColor" className="size-4"><path d="M14 8h3V4h-3c-3 0-5 2-5 5v3H6v4h3v6h4v-6h3l1-4h-4V9c0-.7.3-1 1-1Z" /></svg>
-            </a>
-            <a href="#" aria-label="Instagram" className="grid size-10 place-items-center rounded-full border border-white/15 text-white/70 hover:bg-white/10 hover:text-white">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><path d="M17.5 6.5h.01" /></svg>
-            </a>
+    <footer className="bg-[#052633] text-white">
+      <div className="page-wrap py-12 sm:py-16">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="sm:col-span-2 lg:col-span-1">
+            <Link to="/" className="flex items-center gap-3">
+              <span className="grid size-10 place-items-center rounded-full bg-seafoam text-ocean">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true">
+                  <path d="M2 8c3-3 5 3 8 0s5 3 8 0 4 0 4 0M2 14c3-3 5 3 8 0s5 3 8 0 4 0 4 0M4 20c2-2 4 2 6 0s4 2 6 0 4 0 4 0" />
+                </svg>
+              </span>
+              <span className="font-display text-xl">Tuna Bay Resort</span>
+            </Link>
+            <p className="mt-4 max-w-xs text-sm leading-6 text-white/60">
+              A welcoming waterfront hideaway in Taurama, Port Moresby. Long lunches, salt-air afternoons and celebrations by the bay.
+            </p>
+            <div className="mt-5 flex gap-2">
+              <a href="#" aria-label="Facebook" className="grid size-9 place-items-center rounded-full border border-white/15 text-white/70 transition hover:bg-white/10 hover:text-white">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="size-4"><path d="M14 8h3V4h-3c-3 0-5 2-5 5v3H6v4h3v6h4v-6h3l1-4h-4V9c0-.7.3-1 1-1Z" /></svg>
+              </a>
+              <a href="#" aria-label="Instagram" className="grid size-9 place-items-center rounded-full border border-white/15 text-white/70 transition hover:bg-white/10 hover:text-white">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><path d="M17.5 6.5h.01" /></svg>
+              </a>
+            </div>
+          </div>
+          <div>
+            <h3 className="font-display text-lg text-seafoam">Quick Links</h3>
+            <ul className="mt-4 space-y-2 text-sm text-white/65">
+              {navItems.slice(0, 4).map(([label, href]) => (
+                <li key={label}>
+                  <Link to={href} className="transition hover:text-white">{label}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-display text-lg text-seafoam">Explore</h3>
+            <ul className="mt-4 space-y-2 text-sm text-white/65">
+              {navItems.slice(4).map(([label, href]) => (
+                <li key={label}>
+                  <Link to={href} className="transition hover:text-white">{label}</Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-display text-lg text-seafoam">Contact</h3>
+            <ul className="mt-4 space-y-3 text-sm text-white/65">
+              <li className="flex items-start gap-2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 size-4 shrink-0 text-seafoam"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg>
+                <span>Taurama, Port Moresby, PNG</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 size-4 shrink-0 text-seafoam"><path d="M5.5 3h3l1.5 5-2 1.5a15 15 0 0 0 6.5 6.5l1.5-2 5 1.5v3c0 1.4-1.1 2.5-2.5 2.5C10 21 3 14 3 5.5 3 4.1 4.1 3 5.5 3Z" /></svg>
+                <span>+675 7000 0000</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 size-4 shrink-0 text-seafoam"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+                <span>Fri–Sun · 10am–9pm</span>
+              </li>
+            </ul>
           </div>
         </div>
-        <div className="flex flex-col gap-2 pt-6 text-xs text-white/40 sm:flex-row sm:justify-between">
+        <div className="mt-10 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
           <span>© {new Date().getFullYear()} Tuna Bay Resort. All rights reserved.</span>
           <span>Taurama · Port Moresby · Papua New Guinea</span>
         </div>
