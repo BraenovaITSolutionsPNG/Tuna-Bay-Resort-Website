@@ -27,8 +27,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,37,51,.55)_0%,rgba(5,37,51,.92)_100%)] sm:bg-[linear-gradient(90deg,rgba(5,37,51,.94)_0%,rgba(5,37,51,.68)_48%,rgba(5,37,51,.18)_100%)]" />
         <div className="relative z-10 flex flex-col justify-end sm:justify-center min-h-[75svh] sm:min-h-[92svh] page-wrap pb-10 sm:pb-8 pt-24 sm:pt-36">
           <div className="max-w-3xl">
-            <div className="mb-3 sm:mb-6 flex items-center gap-2">
-              <span className="h-px w-6 bg-seafoam sm:w-10"></span>
+            <div className="mb-3 sm:mb-6">
               <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-seafoam">
                 Taurama · Port Moresby
               </span>
