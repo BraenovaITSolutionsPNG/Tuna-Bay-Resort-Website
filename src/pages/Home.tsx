@@ -104,7 +104,7 @@ export default function Home() {
               <Eyebrow>Resort facilities</Eyebrow>
               <h2 className="heading-lg mt-4">Relax, swim & <em>celebrate</em></h2>
             </div>
-            <Link to="/facilities" className="inline-flex items-center gap-2 rounded-full bg-ocean px-7 py-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-teal">
+            <Link to="/facilities" className="mt-8 inline-flex items-center gap-2 rounded-full bg-ocean px-7 py-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-teal">
               View All Facilities
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
             </Link>
