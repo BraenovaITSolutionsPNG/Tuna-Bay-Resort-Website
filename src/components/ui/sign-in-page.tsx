@@ -187,7 +187,7 @@ export function LoginPage({ role }: LoginPageProps = {}) {
             <div className="flex justify-center">
               <div
                 className="cf-turnstile"
-                data-sitekey="1x00000000000000000000AA"
+                data-sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
                 data-callback="onTurnstileSuccess"
               ></div>
             </div>
