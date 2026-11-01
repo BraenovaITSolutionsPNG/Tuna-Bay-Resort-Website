@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 
 const navItems = [
   ['Home', '/'],
@@ -83,18 +84,6 @@ export function Footer() {
             </span>
             <span className="font-display text-xl">Tuna Bay Resort</span>
           </Link>
-  return (
-    <footer className="bg-[#052633] py-10 text-white">
-      <div className="page-wrap">
-        <div className="flex flex-col gap-8 border-b border-white/10 pb-8 md:flex-row md:items-center md:justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <span className="grid size-10 place-items-center rounded-full bg-seafoam text-ocean">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true">
-                <path d="M2 8c3-3 5 3 8 0s5 3 8 0 4 0 4 0M2 14c3-3 5 3 8 0s5 3 8 0 4 0 4 0M4 20c2-2 4 2 6 0s4 2 6 0 4 0 4 0" />
-              </svg>
-            </span>
-            <span className="font-display text-xl">Tuna Bay Resort</span>
-          </Link>
           <nav className="flex flex-wrap gap-x-6 gap-y-3 text-sm text-white/65">
             {navItems.map(([label, href]) => (
               <Link key={label} to={href} className="hover:text-white flex items-center gap-1.5">
@@ -126,4 +115,8 @@ export function Footer() {
       </div>
     </footer>
   )
+}
+
+export function Eyebrow({ children, light = false }: { children: ReactNode; light?: boolean }) {
+  return <div className={`text-xs font-bold uppercase tracking-[0.2em] ${light ? 'text-seafoam' : 'text-teal'}`}>{children}</div>
 }
