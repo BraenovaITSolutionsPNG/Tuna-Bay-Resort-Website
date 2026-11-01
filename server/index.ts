@@ -145,6 +145,23 @@ app.get('/api/gallery', (req, res) => {
   res.json(db.prepare('SELECT * FROM gallery_images').all())
 })
 
+app.post('/api/gallery', authMiddleware, (req, res) => {
+  const { src, alt, title } = req.body
+  if (!src) return res.status(400).json({ error: 'Missing src' })
+  const result = db.prepare('INSERT INTO gallery_images (src, alt, title) VALUES (?, ?, ?)').run(
+    String(src).trim(),
+    alt ? String(alt).trim() : null,
+    title ? String(title).trim() : null,
+  )
+  res.json({ success: true, id: result.lastInsertRowid })
+})
+
+app.delete('/api/gallery/:id', authMiddleware, (req, res) => {
+  const result = db.prepare('DELETE FROM gallery_images WHERE id = ?').run(req.params.id)
+  if (result.changes === 0) return res.status(404).json({ error: 'Not found' })
+  res.json({ success: true })
+})
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })

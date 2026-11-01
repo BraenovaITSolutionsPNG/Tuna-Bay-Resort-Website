@@ -16,6 +16,7 @@ import AdminBookings from './pages/admin/Bookings'
 import AdminRooms from './pages/admin/Rooms'
 import AdminFacilities from './pages/admin/Facilities'
 import AdminMenu from './pages/admin/Menu'
+import AdminGallery from './pages/admin/Gallery'
 import Staff from './pages/Staff'
 import { LoginPage } from './components/ui/sign-in-page'
 import './index.css'
@@ -40,6 +41,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <Route path="rooms" element={<AdminRooms />} />
           <Route path="facilities" element={<AdminFacilities />} />
           <Route path="menu" element={<AdminMenu />} />
+          <Route path="gallery" element={<AdminGallery />} />
         </Route>
         <Route path="/admin/login" element={<LoginPage role="admin" />} />
         <Route path="/staff/login" element={<LoginPage role="staff" />} />
