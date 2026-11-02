@@ -53,7 +53,7 @@ export default function AdminBookings() {
     setNotice('')
     try {
       await updateBookingStatus(booking.id, status)
-      setNotice(`Booking ${booking.reference || booking.id} marked as ${status}.`)
+      setNotice(`Booking ${booking.name} marked as ${status}.`)
       await load()
     } catch (error) {
       setNotice(error instanceof Error ? error.message : 'Could not update this booking.')
@@ -62,14 +62,14 @@ export default function AdminBookings() {
 
   const remove = async (booking: Booking) => {
     const confirmed = window.confirm(
-      `Delete booking ${booking.reference || booking.id}? This cannot be undone.`,
+      `Delete booking ${booking.name}? This cannot be undone.`,
     )
     if (!confirmed) return
 
     setNotice('')
     try {
       await deleteBooking(booking.id)
-      setNotice(`Booking ${booking.reference || booking.id} deleted.`)
+      setNotice(`Booking ${booking.name} deleted.`)
       await load()
     } catch (error) {
       setNotice(error instanceof Error ? error.message : 'Could not delete this booking.')
@@ -190,7 +190,7 @@ export default function AdminBookings() {
               return (
                 <tr key={booking.id} className="border-t border-ocean/10 align-top">
                   <td className="px-4 py-4 font-mono text-xs font-bold tracking-wide text-ocean">
-                    {booking.reference || `#${booking.id}`}
+                    {booking.reference || '—'}
                   </td>
                   <td className="px-4 py-4">
                     <span className="block font-semibold text-ink">{booking.name}</span>
