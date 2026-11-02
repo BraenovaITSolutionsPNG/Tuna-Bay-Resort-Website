@@ -161,10 +161,40 @@ export async function initDb() {
   // Seed testimonials if empty
   const testCount = await sql`SELECT COUNT(*) as c FROM testimonials`
   if (Number(testCount[0].c) === 0) {
-    await sql`INSERT INTO testimonials (name, text, rating) VALUES ('Sarah K.', 'A wonderful escape from the city. The seafood was incredible and the staff were so welcoming.', 5)`
-    await sql`INSERT INTO testimonials (name, text, rating) VALUES ('Mark T.', 'Perfect venue for our family gathering. The pool area is great for kids.', 5)`
-    await sql`INSERT INTO testimonials (name, text, rating) VALUES ('Grace M.', 'Beautiful sunset views from the jetty. Will definitely come back.', 4)`
+    await sql`INSERT INTO testimonials (name, text, rating, approved) VALUES ('Sarah K.', 'A wonderful escape from the city. The seafood was incredible and the staff were so welcoming.', 5, TRUE)`
+    await sql`INSERT INTO testimonials (name, text, rating, approved) VALUES ('Mark T.', 'Perfect venue for our family gathering. The pool area is great for kids.', 5, TRUE)`
+    await sql`INSERT INTO testimonials (name, text, rating, approved) VALUES ('Grace M.', 'Beautiful sunset views from the jetty. Will definitely come back.', 4, TRUE)`
+    await sql`INSERT INTO testimonials (name, text, rating, approved) VALUES ('James K.', 'Beautiful place to visit over the weekends. I just have one thing to say please improve the toilets.', 3, TRUE)`
   }
 }
+
+  // Seed test bookings if empty
+  const bookingCount = await sql`SELECT COUNT(*) as c FROM bookings`
+  if (Number(bookingCount[0].c) === 0) {
+    const types = ['room', 'table', 'function', 'day-pass', 'general']
+    const rooms = ['Standard Room', 'Deluxe Room', 'Ocean View Suite', 'Family Room', 'Beachfront Villa']
+    const names = ['John Doe', 'Jane Smith', 'Peter Kalu', 'Mary Tama', 'David Ora', 'Sarah Numa', 'James Kila', 'Grace Moka', 'Tom Hiri', 'Lisa Buka', 'Paul Raga', 'Anna Kone', 'Mark Saea', 'Ruth Igo', 'Steve Puka']
+    for (let i = 0; i < 25; i++) {
+      const type = types[i % types.length]
+      const isRoom = type === 'room'
+      await sql`
+        INSERT INTO bookings (name, phone, booking_type, date, checkout, party, room, rooms, message, status)
+        VALUES (
+          ${names[i % names.length]},
+          ${'+675 7' + Math.floor(Math.random() * 9000000 + 1000000)},
+          ${type},
+          ${'2026-11-' + String((i % 28) + 1).padStart(2, '0')},
+          ${isRoom ? '2026-11-' + String((i % 28) + 3).padStart(2, '0') : null},
+          ${isRoom ? ((i % 4) + 1) + ' guests' : ((i % 8) + 2) + ' guests'},
+          ${isRoom ? rooms[i % rooms.length] : null},
+          ${isRoom ? String((i % 3) + 1) : null},
+          ${i % 3 === 0 ? 'Looking forward to visiting!' : null},
+          ${i % 4 === 0 ? 'confirmed' : 'pending'}
+        )
+      `
+    }
+  }
+  // Approve seeded testimonials
+  await sql`UPDATE testimonials SET approved = TRUE WHERE name IN ('Sarah K.', 'Mark T.', 'Grace M.', 'James K.')`
 
 export default sql
