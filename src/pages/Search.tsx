@@ -1,16 +1,18 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Header, Footer, Eyebrow } from '../components/Layout'
 
 interface Room { id: number; name: string; description: string; price: string }
 interface Facility { id: number; title: string; text: string }
 interface MenuItem { id: number; name: string; description: string; price: string; category: string }
+interface GalleryImage { id: number; src: string; alt: string | null; title: string | null }
 
 export default function Search() {
   const [query, setQuery] = useState('')
   const [rooms, setRooms] = useState<Room[]>([])
   const [facilities, setFacilities] = useState<Facility[]>([])
   const [menu, setMenu] = useState<MenuItem[]>([])
+  const [gallery, setGallery] = useState<GalleryImage[]>([])
   const [loaded, setLoaded] = useState(false)
 
   const load = () => {
@@ -19,18 +21,23 @@ export default function Search() {
       fetch('/api/rooms').then(r => r.ok ? r.json() : []),
       fetch('/api/facilities').then(r => r.ok ? r.json() : []),
       fetch('/api/menu').then(r => r.ok ? r.json() : []),
-    ]).then(([r, f, m]) => {
+      fetch('/api/gallery').then(r => r.ok ? r.json() : []),
+    ]).then(([r, f, m, g]) => {
       setRooms(Array.isArray(r) ? r : [])
       setFacilities(Array.isArray(f) ? f : [])
       setMenu(Array.isArray(m) ? m : [])
+      setGallery(Array.isArray(g) ? g : [])
       setLoaded(true)
     })
   }
+
+  useEffect(() => { load() }, [])
 
   const q = query.toLowerCase().trim()
   const filteredRooms = q ? rooms.filter(r => r.name.toLowerCase().includes(q) || r.description?.toLowerCase().includes(q)) : []
   const filteredFacilities = q ? facilities.filter(f => f.title.toLowerCase().includes(q) || f.text?.toLowerCase().includes(q)) : []
   const filteredMenu = q ? menu.filter(m => m.name.toLowerCase().includes(q) || m.description?.toLowerCase().includes(q)) : []
+  const filteredGallery = q ? gallery.filter(g => g.title?.toLowerCase().includes(q) || g.alt?.toLowerCase().includes(q)) : []
 
   return (
     <main className="overflow-x-hidden bg-sand text-ink">
@@ -85,7 +92,18 @@ export default function Search() {
                   ))}
                 </div>
               )}
-              {filteredRooms.length === 0 && filteredFacilities.length === 0 && filteredMenu.length === 0 && (
+              {filteredGallery.length > 0 && (
+                <div>
+                  <h2 className="font-display text-xl text-ocean mb-3">Gallery</h2>
+                  {filteredGallery.map(g => (
+                    <Link key={g.id} to="/gallery" className="block rounded-xl bg-white p-4 shadow mb-2 hover:shadow-md transition">
+                      <span className="font-bold text-ocean">{g.title || 'Image'}</span>
+                      <p className="text-sm text-muted">{g.alt}</p>
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {filteredRooms.length === 0 && filteredFacilities.length === 0 && filteredMenu.length === 0 && filteredGallery.length === 0 && (
                 <p className="text-muted">No results found.</p>
               )}
             </div>
