@@ -126,6 +126,15 @@ export async function createBooking(payload: BookingPayload): Promise<{ booking:
   let response: Response | null = null
 
   try {
+    if (payload.bookingType === 'room' && payload.room && payload.date && payload.checkout) {
+      const availRes = await fetch(`/api/availability?room=${encodeURIComponent(payload.room)}&checkin=${payload.date}&checkout=${payload.checkout}`)
+      if (availRes.ok) {
+        const avail = await availRes.json()
+        if (avail && avail.available === false) {
+          throw new BookingError('Selected room is not available for those dates.', 409)
+        }
+      }
+    }
     response = await fetch('/api/booking', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

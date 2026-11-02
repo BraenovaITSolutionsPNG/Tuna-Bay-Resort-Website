@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import ErrorBoundary from './components/ErrorBoundary'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from './pages/Home'
 import About from './pages/About'
@@ -10,6 +11,7 @@ import Rooms from './pages/Rooms'
 import Booking from './pages/Booking'
 import Location from './pages/Location'
 import Sitemap from './pages/Sitemap'
+import Search from './pages/Search'
 import NotFound from './pages/NotFound'
 import AdminLayout from './layouts/AdminLayout'
 import AdminOverview from './pages/admin/Overview'
@@ -27,8 +29,9 @@ import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Routes>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/facilities" element={<Facilities />} />
@@ -38,6 +41,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/booking" element={<Booking />} />
         <Route path="/location" element={<Location />} />
         <Route path="/sitemap" element={<Sitemap />} />
+        <Route path="/search" element={<Search />} />
         <Route path="*" element={<NotFound />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/admin" element={<AdminLayout />}>
@@ -54,7 +58,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/admin/login" element={<LoginPage role="admin" />} />
         <Route path="/staff/login" element={<LoginPage role="staff" />} />
         <Route path="/staff" element={<Staff />} />
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
   </React.StrictMode>,
 )
