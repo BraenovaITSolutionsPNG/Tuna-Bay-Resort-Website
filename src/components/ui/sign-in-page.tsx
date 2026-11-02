@@ -189,6 +189,16 @@ export function LoginPage({ role }: LoginPageProps = {}) {
               Sign In
             </button>
           </form>
+
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="text-sm text-gray-500 hover:text-gray-700 font-medium"
+            >
+              ← Back to home
+            </button>
+          </div>
         </div>
       </div>
     </div>
