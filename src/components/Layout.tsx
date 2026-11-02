@@ -7,11 +7,10 @@ const navItems = [
   ['About', '/about'],
   ['Facilities', '/facilities'],
   ['Menu', '/menu'],
-  ['Gallery', '/gallery'],
   ['Rooms', '/rooms'],
-  ['Search', '/search'],
-  ['Booking', '/booking'],
+  ['Gallery', '/gallery'],
   ['Location', '/location'],
+  ['Search', '/search'],
 ]
 
 export function Header({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
@@ -68,11 +67,10 @@ export function Footer() {
     ['About', '/about'],
     ['Facilities', '/facilities'],
     ['Menu', '/menu'],
-    ['Gallery', '/gallery'],
     ['Rooms', '/rooms'],
-    ['Search', '/search'],
-    ['Booking', '/booking'],
+    ['Gallery', '/gallery'],
     ['Location', '/location'],
+    ['Search', '/search'],
   ]
   return (
     <footer className="bg-[#052633] text-white">
