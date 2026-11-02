@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import CalendarView from '../../components/CalendarView'
 import {
   BOOKING_TYPE_OPTIONS,
   Booking,
@@ -29,6 +30,7 @@ export default function AdminBookings() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [view, setView] = useState<'table' | 'calendar'>('table')
   const [typeFilter, setTypeFilter] = useState('all')
   const [loading, setLoading] = useState(true)
   const [notice, setNotice] = useState('')
@@ -156,6 +158,18 @@ export default function AdminBookings() {
         </div>
       )}
 
+      <div className="mt-4 flex gap-2">
+        <button onClick={() => setView('table')} className={`rounded-xl px-4 py-2 text-sm font-bold transition ${view === 'table' ? 'bg-ocean text-white' : 'bg-white text-ocean border border-ocean/20'}`}>Table</button>
+        <button onClick={() => setView('calendar')} className={`rounded-xl px-4 py-2 text-sm font-bold transition ${view === 'calendar' ? 'bg-ocean text-white' : 'bg-white text-ocean border border-ocean/20'}`}>Calendar</button>
+      </div>
+
+      {view === 'calendar' && (
+        <div className="mt-4 rounded-2xl bg-white p-5 shadow">
+          <CalendarView bookings={filtered} />
+        </div>
+      )}
+
+      {view === 'table' && (
       <div className="mt-4 overflow-x-auto rounded-2xl bg-white shadow">
         <table className="w-full min-w-[880px] text-sm">
           <thead className="bg-ocean text-white">
@@ -244,6 +258,8 @@ export default function AdminBookings() {
           </tbody>
         </table>
       </div>
+      )}
+
     </div>
   )
 }
