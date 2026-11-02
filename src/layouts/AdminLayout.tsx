@@ -36,9 +36,9 @@ export default function AdminLayout() {
     navigate('/admin/login')
   }
 
-  const adminNav = [
+  const adminNav: { Icon: any; title: string; path: string; notifs?: number }[] = [
     { Icon: Home, title: 'Dashboard', path: '/admin' },
-    { Icon: Calendar, title: 'Bookings', path: '/admin/bookings', notifs: 0 },
+    { Icon: Calendar, title: 'Bookings', path: '/admin/bookings' },
     { Icon: Bed, title: 'Rooms', path: '/admin/rooms' },
     { Icon: Tag, title: 'Facilities', path: '/admin/facilities' },
     { Icon: UtensilsCrossed, title: 'Menu', path: '/admin/menu' },
@@ -99,7 +99,7 @@ export default function AdminLayout() {
                       {item.title}
                     </span>
                   )}
-                  {item.notifs && open && (
+                  {Boolean(item.notifs) && open && (
                     <span className="absolute right-3 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 dark:bg-blue-600 text-xs text-white font-medium">
                       {item.notifs}
                     </span>
