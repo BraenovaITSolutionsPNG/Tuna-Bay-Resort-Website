@@ -16,7 +16,8 @@ const USERS = [
 ]
 
 export default async function handler(req: any, res: any) {
-  const path = (req.query?.path || []).join('/')
+  const segments = Array.isArray(req.query?.path) ? req.query.path : req.query?.path ? [req.query.path] : []
+  const path = segments.join('/')
   const method = req.method
 
   res.setHeader('Content-Type', 'application/json')
