@@ -1,4 +1,5 @@
 import { Header, Footer, Eyebrow } from '../components/Layout'
+import EnquiryForm from '../components/EnquiryForm'
 
 export default function Location() {
   return (
@@ -42,6 +43,10 @@ export default function Location() {
               ></iframe>
             </div>
           </div>
+        </div>
+        <div className="mt-12 max-w-2xl">
+          <h2 className="font-display text-2xl text-ocean mb-4">General enquiry</h2>
+          <EnquiryForm />
         </div>
       </section>
       <Footer />
