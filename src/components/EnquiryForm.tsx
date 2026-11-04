@@ -54,19 +54,19 @@ export default function EnquiryForm() {
   return (
     <form onSubmit={handleSubmit} className="grid gap-4">
       <label>
-        <span className="field-label">Your name</span>
+        <span className="field-label text-white">Your name</span>
         <input value={name} onChange={(e) => setName(e.target.value)} className="field-input" placeholder="Full name" />
       </label>
       <label>
-        <span className="field-label">Email address</span>
+        <span className="field-label text-white">Email address</span>
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="field-input" placeholder="you@example.com" />
       </label>
       <label>
-        <span className="field-label">Phone number</span>
+        <span className="field-label text-white">Phone number</span>
         <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="field-input" placeholder="+675 7000 0000" />
       </label>
       <label>
-        <span className="field-label">Your enquiry</span>
+        <span className="field-label text-white">Your enquiry</span>
         <textarea rows={4} value={message} onChange={(e) => setMessage(e.target.value)} className="field-input resize-none" placeholder="How can we help?" />
       </label>
       {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
