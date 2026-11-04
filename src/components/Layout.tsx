@@ -38,10 +38,18 @@ export function Header({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
             </Link>
           ))}
         </nav>
-        <div className="flex items-center gap-3">
-          <Link to="/#booking" className={`hidden rounded-full px-4 xl:px-6 py-2 xl:py-3 text-xs xl:text-sm font-bold transition hover:-translate-y-0.5 sm:inline-flex ${variant === 'dark' ? 'bg-coral text-white shadow-lg shadow-black/10 hover:bg-coral-dark' : 'bg-coral text-white hover:bg-coral-dark'}`}>
-            Book Now
-          </Link>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="hidden items-center gap-1.5 sm:flex">
+            <a href="#" aria-label="Facebook" className={`grid size-8 sm:size-9 place-items-center rounded-full border transition hover:-translate-y-0.5 ${variant === 'dark' ? 'border-white/30 text-white hover:bg-white/10' : 'border-ocean/20 text-ocean hover:bg-ocean/5'}`}>
+              <svg viewBox="0 0 24 24" fill="currentColor" className="size-4"><path d="M14 8h3V4h-3c-3 0-5 2-5 5v3H6v4h3v6h4v-6h3l1-4h-4V9c0-.7.3-1 1-1Z" /></svg>
+            </a>
+            <a href="#" aria-label="WhatsApp" className={`grid size-8 sm:size-9 place-items-center rounded-full border transition hover:-translate-y-0.5 ${variant === 'dark' ? 'border-white/30 text-white hover:bg-white/10' : 'border-ocean/20 text-ocean hover:bg-ocean/5'}`}>
+              <svg viewBox="0 0 24 24" fill="currentColor" className="size-4"><path d="M17.5 6.5A8.4 8.4 0 0 0 12 4a8 8 0 0 0-6.9 12L4 20l4.2-1.1A8 8 0 0 0 12 20a8.4 8.4 0 0 0 5.5-2.5 7.9 7.9 0 0 0 0-11Zm-5.5 12a6.5 6.5 0 0 1-3.3-.9l-.2-.1-2.5.7.7-2.4-.1-.2A6.5 6.5 0 1 1 12 18.5Zm3.6-4.8c-.2-.1-1.1-.5-1.3-.6s-.3-.1-.4.1-.5.6-.6.7-.2.2-.4.1a5.4 5.4 0 0 1-1.6-1 6 6 0 0 1-1.1-1.4c-.1-.2 0-.3.1-.4l.3-.3.2-.3c.1-.1.1-.2.2-.3s0-.2 0-.3l-.6-1.4c-.1-.3-.3-.3-.4-.3h-.4c-.1 0-.3.1-.5.2a2 2 0 0 0-.6 1.5 3.5 3.5 0 0 0 .7 1.8 8 8 0 0 0 3.1 2.7c.4.2.7.3 1 .4.4.1.8.1 1.1 0 .3-.1 1-.4 1.2-.8s.1-.7.1-.8-.2-.1-.4-.2Z" /></svg>
+            </a>
+            <a href="#" aria-label="LinkedIn" className={`grid size-8 sm:size-9 place-items-center rounded-full border transition hover:-translate-y-0.5 ${variant === 'dark' ? 'border-white/30 text-white hover:bg-white/10' : 'border-ocean/20 text-ocean hover:bg-ocean/5'}`}>
+              <svg viewBox="0 0 24 24" fill="currentColor" className="size-4"><path d="M6.5 6A2.5 2.5 0 1 1 4 3.5 2.5 2.5 0 0 1 6.5 6ZM4 8h5v12H4Zm7 0h4.8v1.7h.1a5.3 5.3 0 0 1 4.7-2.6c5 0 6 3.3 6 7.6V20h-5v-4.4c0-1 0-2.4-1.5-2.4s-1.7 1.1-1.7 2.3V20h-5Z" /></svg>
+            </a>
+          </div>
           <button onClick={() => setMobileOpen(!mobileOpen)} className={`grid size-9 sm:size-10 place-items-center rounded-full border lg:hidden ${variant === 'dark' ? 'border-white/30 text-white' : 'border-ocean/20 text-ocean'}`} aria-expanded={mobileOpen} aria-label="Toggle navigation">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-5">
               {mobileOpen ? <path d="M6 6l12 12M6 18L18 6" /> : <><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></>}
@@ -54,7 +62,11 @@ export function Header({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
           {navItems.map(([label, href]) => (
             <Link key={label} to={href} onClick={() => setMobileOpen(false)} className="rounded-xl px-4 py-3 font-semibold hover:bg-sand">{label}</Link>
           ))}
-          <Link to="/#booking" onClick={() => setMobileOpen(false)} className="mt-1 rounded-xl bg-ocean px-4 py-3 text-center font-bold text-white">Book Now</Link>
+          <div className="mt-1 flex items-center justify-center gap-3 py-2">
+            <a href="#" aria-label="Facebook" className="grid size-9 place-items-center rounded-full border border-ocean/20 text-ocean transition hover:bg-ocean/5"><svg viewBox="0 0 24 24" fill="currentColor" className="size-4"><path d="M14 8h3V4h-3c-3 0-5 2-5 5v3H6v4h3v6h4v-6h3l1-4h-4V9c0-.7.3-1 1-1Z" /></svg></a>
+            <a href="#" aria-label="WhatsApp" className="grid size-9 place-items-center rounded-full border border-ocean/20 text-ocean transition hover:bg-ocean/5"><svg viewBox="0 0 24 24" fill="currentColor" className="size-4"><path d="M17.5 6.5A8.4 8.4 0 0 0 12 4a8 8 0 0 0-6.9 12L4 20l4.2-1.1A8 8 0 0 0 12 20a8.4 8.4 0 0 0 5.5-2.5 7.9 7.9 0 0 0 0-11Zm-5.5 12a6.5 6.5 0 0 1-3.3-.9l-.2-.1-2.5.7.7-2.4-.1-.2A6.5 6.5 0 1 1 12 18.5Zm3.6-4.8c-.2-.1-1.1-.5-1.3-.6s-.3-.1-.4.1-.5.6-.6.7-.2.2-.4.1a5.4 5.4 0 0 1-1.6-1 6 6 0 0 1-1.1-1.4c-.1-.2 0-.3.1-.4l.3-.3.2-.3c.1-.1.1-.2.2-.3s0-.2 0-.3l-.6-1.4c-.1-.3-.3-.3-.4-.3h-.4c-.1 0-.3.1-.5.2a2 2 0 0 0-.6 1.5 3.5 3.5 0 0 0 .7 1.8 8 8 0 0 0 3.1 2.7c.4.2.7.3 1 .4.4.1.8.1 1.1 0 .3-.1 1-.4 1.2-.8s.1-.7.1-.8-.2-.1-.4-.2Z" /></svg></a>
+            <a href="#" aria-label="LinkedIn" className="grid size-9 place-items-center rounded-full border border-ocean/20 text-ocean transition hover:bg-ocean/5"><svg viewBox="0 0 24 24" fill="currentColor" className="size-4"><path d="M6.5 6A2.5 2.5 0 1 1 4 3.5 2.5 2.5 0 0 1 6.5 6ZM4 8h5v12H4Zm7 0h4.8v1.7h.1a5.3 5.3 0 0 1 4.7-2.6c5 0 6 3.3 6 7.6V20h-5v-4.4c0-1 0-2.4-1.5-2.4s-1.7 1.1-1.7 2.3V20h-5Z" /></svg></a>
+          </div>
         </nav>
       )}
     </header>
