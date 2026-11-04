@@ -24,7 +24,7 @@ import AdminTestimonials from './pages/admin/Testimonials'
 import AdminUsers from './pages/admin/Users'
 import AdminSettings from './pages/admin/Settings'
 import Staff from './pages/Staff'
-import { LoginPage } from './components/ui/sign-in-page'
+import FloatingChat from './components/FloatingChat'
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -59,6 +59,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Route path="/staff/login" element={<LoginPage role="staff" />} />
         <Route path="/staff" element={<Staff />} />
         </Routes>
+        <FloatingChat />
       </BrowserRouter>
     </ErrorBoundary>
   </React.StrictMode>,
