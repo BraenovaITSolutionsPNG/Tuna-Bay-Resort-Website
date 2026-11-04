@@ -39,7 +39,7 @@ export function Header({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
           ))}
         </nav>
         <div className="flex items-center gap-3">
-          <Link to="/booking" className={`hidden rounded-full px-4 xl:px-6 py-2 xl:py-3 text-xs xl:text-sm font-bold transition hover:-translate-y-0.5 sm:inline-flex ${variant === 'dark' ? 'bg-coral text-white shadow-lg shadow-black/10 hover:bg-coral-dark' : 'bg-coral text-white hover:bg-coral-dark'}`}>
+          <Link to="/#booking" className={`hidden rounded-full px-4 xl:px-6 py-2 xl:py-3 text-xs xl:text-sm font-bold transition hover:-translate-y-0.5 sm:inline-flex ${variant === 'dark' ? 'bg-coral text-white shadow-lg shadow-black/10 hover:bg-coral-dark' : 'bg-coral text-white hover:bg-coral-dark'}`}>
             Book Now
           </Link>
           <button onClick={() => setMobileOpen(!mobileOpen)} className={`grid size-9 sm:size-10 place-items-center rounded-full border lg:hidden ${variant === 'dark' ? 'border-white/30 text-white' : 'border-ocean/20 text-ocean'}`} aria-expanded={mobileOpen} aria-label="Toggle navigation">
@@ -54,7 +54,7 @@ export function Header({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
           {navItems.map(([label, href]) => (
             <Link key={label} to={href} onClick={() => setMobileOpen(false)} className="rounded-xl px-4 py-3 font-semibold hover:bg-sand">{label}</Link>
           ))}
-          <Link to="/booking" onClick={() => setMobileOpen(false)} className="mt-1 rounded-xl bg-ocean px-4 py-3 text-center font-bold text-white">Book Now</Link>
+          <Link to="/#booking" onClick={() => setMobileOpen(false)} className="mt-1 rounded-xl bg-ocean px-4 py-3 text-center font-bold text-white">Book Now</Link>
         </nav>
       )}
     </header>

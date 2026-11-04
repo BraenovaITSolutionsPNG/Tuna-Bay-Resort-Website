@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Header, Footer, Eyebrow } from '../components/Layout'
 import ReviewForm from '../components/ReviewForm'
+import BookingForm from '../components/BookingForm'
 
 const heroImage = '/images/tuna-bay-hero.jpg'
 const aboutImage = '/images/tuna-bay-waterfront.png'
@@ -15,7 +16,7 @@ interface Testimonial {
 
 const offerings = [
   { title: 'Coastal Dining & Bar', text: 'Fresh seafood, flame-grilled favourites and ice-cold drinks served right by the water.', href: '/menu' },
-  { title: 'Private Venue Hire', text: 'Flexible spaces for birthdays, celebrations, team events and intimate functions.', href: '/booking' },
+  { title: 'Private Venue Hire', text: 'Flexible spaces for birthdays, celebrations, team events and intimate functions.', href: '#booking' },
   { title: 'Family Day Passes', text: 'Slow weekends, open-air fun and relaxed spaces made for the whole family.', href: '/menu' },
   { title: 'Jetty & Sunset Views', text: 'Walk the waterfront jetty and settle in for one of Taurama’s best sunset views.', href: '/gallery' },
 ]
@@ -30,6 +31,13 @@ const facilities = [
 export default function Home() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [showReviewForm, setShowReviewForm] = useState(false)
+  const [bookingOpen, setBookingOpen] = useState(false)
+  const [barType, setBarType] = useState('room')
+  const [barDate, setBarDate] = useState('')
+  const [barParty, setBarParty] = useState('2')
+  const [modalType, setModalType] = useState('')
+  const [modalDate, setModalDate] = useState('')
+  const [modalParty, setModalParty] = useState('2')
 
   useEffect(() => {
     fetch('/api/testimonials')
@@ -64,13 +72,41 @@ export default function Home() {
                 View Menu 
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
               </Link>
-              <Link to="/booking" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/40 bg-white/10 px-6 sm:px-7 py-3 sm:py-4 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20 w-full sm:w-auto">
+              <Link to="#booking" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/40 bg-white/10 px-6 sm:px-7 py-3 sm:py-4 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20 w-full sm:w-auto">
                 Reserve a Table / Function
               </Link>
             </div>
             <div className="mt-8 sm:mt-12 flex flex-wrap justify-center sm:justify-start gap-x-6 gap-y-2 border-t border-white/20 pt-5 text-xs sm:text-sm text-white/70">
               <span className="flex items-center gap-2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4 text-seafoam"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg> Open Fri–Sun</span>
               <span className="flex items-center gap-2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4 text-seafoam"><path d="M3 18h18M5 14h14M8 14a4 4 0 0 1 8 0M12 3v3" /></svg> Sunset from 5:30pm</span>
+            </div>
+          </div>
+          <div id="booking" className="mt-8 flex flex-col gap-4">
+            <span className="text-sm font-bold uppercase tracking-wide text-white/90">Room booking</span>
+            <div className="flex flex-col gap-3 rounded-2xl bg-white/95 p-4 shadow-xl md:flex-row md:items-end">
+              <label className="flex-1">
+                <span className="field-label">Check-in</span>
+                <input type="date" value={barDate} onChange={(e) => setBarDate(e.target.value)} className="field-input" />
+              </label>
+              <label className="w-full md:w-32">
+                <span className="field-label">Guests</span>
+                <input type="number" min={1} value={barParty} onChange={(e) => setBarParty(e.target.value)} className="field-input" />
+              </label>
+              <button onClick={() => { setModalType('room'); setModalDate(barDate); setModalParty(barParty); setBookingOpen(true) }} className="rounded-xl bg-coral px-6 py-3 text-sm font-bold text-white transition hover:bg-coral-dark">
+                Book room
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                ['table', 'Restaurant table'],
+                ['function', 'Private function'],
+                ['day-pass', 'Family day pass'],
+                ['general', 'General enquiry'],
+              ].map(([value, label]) => (
+                <button key={value} onClick={() => { setModalType(value); setModalDate(''); setModalParty('2'); setBookingOpen(true) }} className="rounded-full border border-white/40 bg-white/10 px-4 py-2 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20">
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -177,6 +213,18 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {bookingOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="font-display text-2xl text-ocean">Plan your visit</h2>
+              <button onClick={() => setBookingOpen(false)} className="rounded-full p-2 text-muted hover:bg-sand">✕</button>
+            </div>
+            <BookingForm initialType={modalType} initialDate={modalDate} initialParty={modalParty} />
+          </div>
+        </div>
+      )}
 
       <Footer />
     </main>

@@ -43,8 +43,19 @@ const initialForm: FormState = {
   message: '',
 }
 
-export default function BookingForm() {
-  const [form, setForm] = useState<FormState>(initialForm)
+interface BookingFormProps {
+  initialType?: string
+  initialDate?: string
+  initialParty?: string
+}
+
+export default function BookingForm({ initialType = '', initialDate = '', initialParty = '' }: BookingFormProps) {
+  const [form, setForm] = useState<FormState>(() => ({
+    ...initialForm,
+    bookingType: initialType,
+    date: initialDate,
+    party: initialParty || initialForm.party,
+  }))
   const [errors, setErrors] = useState<FormErrors>({})
   const [formError, setFormError] = useState('')
   const [submitting, setSubmitting] = useState(false)
