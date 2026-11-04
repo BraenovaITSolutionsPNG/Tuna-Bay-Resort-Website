@@ -19,10 +19,8 @@ export function Header({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
     <header className={`border-b ${variant === 'dark' ? 'border-white/15 bg-ocean/90 backdrop-blur-sm' : 'border-ocean/10 bg-white'}`}>
       <div className="page-wrap flex h-16 sm:h-20 items-center justify-between">
         <Link to="/" className="flex items-center gap-2 sm:gap-3" aria-label="Tuna Bay Resort home">
-          <span className={`grid size-9 sm:size-11 place-items-center rounded-full ${variant === 'dark' ? 'border border-white/35 bg-white/10' : 'bg-seafoam'}`}>
-            <svg viewBox="0 0 24 24" fill="none" stroke={variant === 'dark' ? 'white' : '#052633'} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-5 sm:size-6" aria-hidden="true">
-              <path d="M2 8c3-3 5 3 8 0s5 3 8 0 4 0 4 0M2 14c3-3 5 3 8 0s5 3 8 0 4 0 4 0M4 20c2-2 4 2 6 0s4 2 6 0 4 0 4 0" />
-            </svg>
+          <span className={`grid size-9 sm:size-11 place-items-center rounded-full ${variant === 'dark' ? 'border border-white/35 bg-white/10' : 'bg-seafoam'} overflow-hidden`}>
+            <img src="/images/tuna-bay-logo.png" alt="Tuna Bay Resort logo" className="size-full object-contain" />
           </span>
           <span className={`font-display text-lg sm:text-xl leading-none tracking-wide ${variant === 'dark' ? 'text-white' : 'text-ocean'}`}>
             Tuna Bay 
@@ -92,10 +90,8 @@ export function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-1">
             <Link to="/" className="flex items-center gap-3">
-              <span className="grid size-10 place-items-center rounded-full bg-seafoam text-ocean">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="size-5" aria-hidden="true">
-                  <path d="M2 8c3-3 5 3 8 0s5 3 8 0 4 0 4 0M2 14c3-3 5 3 8 0s5 3 8 0 4 0 4 0M4 20c2-2 4 2 6 0s4 2 6 0 4 0 4 0" />
-                </svg>
+              <span className="grid size-10 place-items-center rounded-full bg-seafoam overflow-hidden">
+                <img src="/images/tuna-bay-logo.png" alt="Tuna Bay Resort logo" className="size-full object-contain" />
               </span>
               <span className="font-display text-xl">Tuna Bay Resort</span>
             </Link>
