@@ -16,7 +16,13 @@ const USERS = [
 ]
 
 export default async function handler(req: any, res: any) {
-  const segments = Array.isArray(req.query?.path) ? req.query.path : req.query?.path ? [req.query.path] : []
+  let segments = Array.isArray(req.query?.path) ? req.query.path : req.query?.path ? [req.query.path] : []
+  if (segments.length === 0 && req.url) {
+    try {
+      const pathname = new URL(req.url, 'http://localhost').pathname.replace(/^\/api\/?/, '')
+      if (pathname) segments = pathname.split('/').filter(Boolean)
+    } catch {}
+  }
   const path = segments.join('/')
   const method = req.method
 
