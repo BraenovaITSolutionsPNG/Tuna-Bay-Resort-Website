@@ -72,8 +72,8 @@ export default function Home() {
                 View Menu 
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
               </Link>
-              <Link to="#booking" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/40 bg-white/10 px-6 sm:px-7 py-3 sm:py-4 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20 w-full sm:w-auto">
-                Reserve a Table / Function
+              <Link to="/rooms" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/40 bg-white/10 px-6 sm:px-7 py-3 sm:py-4 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20 w-full sm:w-auto">
+                View Rooms
               </Link>
             </div>
             <div className="mt-8 sm:mt-12 flex flex-wrap justify-center sm:justify-start gap-x-6 gap-y-2 border-t border-white/20 pt-5 text-xs sm:text-sm text-white/70">

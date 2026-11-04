@@ -161,7 +161,7 @@ export default function App() {
             <p className="mt-6 max-w-2xl text-base leading-7 text-white/78 sm:text-lg">Relaxing ocean views, fresh dining, and private function spaces just minutes from central Port Moresby.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a href="#menu" className="inline-flex items-center justify-center gap-2 rounded-full bg-coral px-7 py-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-coral-dark">View Menu <Icon name="arrow" /></a>
-              <a href="#booking" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/40 bg-white/10 px-7 py-4 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20">Reserve a Table / Function</a>
+              <a href="/rooms" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/40 bg-white/10 px-7 py-4 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/20">View Rooms</a>
             </div>
           </div>
           <div className="mt-12 flex flex-wrap gap-x-8 gap-y-3 border-t border-white/20 pt-6 text-sm text-white/70 md:absolute md:bottom-0 md:right-8 md:mt-0 md:w-72 md:border-l md:border-t-0 md:pl-6 md:pt-0">
