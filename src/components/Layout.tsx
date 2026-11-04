@@ -19,7 +19,7 @@ export function Header({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
     <header className={`border-b ${variant === 'dark' ? 'border-white/15 bg-ocean/90 backdrop-blur-sm' : 'border-ocean/10 bg-white'}`}>
       <div className="page-wrap flex h-16 sm:h-20 items-center justify-between">
         <Link to="/" className="flex items-center gap-2 sm:gap-3" aria-label="Tuna Bay Resort home">
-          <span className={`grid size-9 sm:size-11 place-items-center rounded-full ${variant === 'dark' ? 'border border-white/35 bg-white/10' : 'bg-seafoam'} overflow-hidden`}>
+          <span className={`grid size-9 sm:size-11 place-items-center rounded-full ${variant === 'dark' ? 'border border-white/35 bg-white' : 'bg-white'} overflow-hidden`}>
             <img src="/images/tuna-bay-logo.png" alt="Tuna Bay Resort logo" className="size-full object-contain" />
           </span>
           <span className={`font-display text-lg sm:text-xl leading-none tracking-wide ${variant === 'dark' ? 'text-white' : 'text-ocean'}`}>
@@ -90,7 +90,7 @@ export function Footer() {
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="sm:col-span-2 lg:col-span-1">
             <Link to="/" className="flex items-center gap-3">
-              <span className="grid size-10 place-items-center rounded-full bg-seafoam overflow-hidden">
+              <span className="grid size-10 place-items-center rounded-full bg-white overflow-hidden">
                 <img src="/images/tuna-bay-logo.png" alt="Tuna Bay Resort logo" className="size-full object-contain" />
               </span>
               <span className="font-display text-xl">Tuna Bay Resort</span>
