@@ -127,7 +127,7 @@ export default function App() {
       <header className="absolute inset-x-0 top-0 z-50 border-b border-white/15">
         <div className="page-wrap flex h-20 items-center justify-between text-white">
           <a href="#" className="flex items-center gap-3" aria-label="Tuna Bay Resort home">
-            <span className="grid size-11 place-items-center rounded-full border border-white/35 bg-white backdrop-blur-sm overflow-hidden"><img src="/images/tuna-bay-logo.png" alt="Tuna Bay Resort logo" className="size-full object-contain" /></span>
+            <span className="grid size-14 place-items-center rounded-full border border-white/35 bg-white backdrop-blur-sm overflow-hidden"><img src="/images/tuna-bay-logo.png" alt="Tuna Bay Resort logo" className="size-full object-contain" /></span>
             <span className="font-display text-xl leading-none tracking-wide">Tuna Bay <small className="mt-1 block font-sans text-[0.6rem] font-semibold uppercase tracking-[0.28em] text-white/70">Resort · Taurama</small></span>
           </a>
           <nav className="hidden items-center gap-8 lg:flex" aria-label="Main navigation">
