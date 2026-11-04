@@ -9,7 +9,7 @@ const navItems = [
   ['Menu', '/menu'],
   ['Rooms', '/rooms'],
   ['Gallery', '/gallery'],
-  ['Location', '/location'],
+  ['Location', '/#location'],
   ['Search', '/search'],
 ]
 
@@ -83,7 +83,7 @@ export function Footer() {
     ['Menu', '/menu'],
     ['Rooms', '/rooms'],
     ['Gallery', '/gallery'],
-    ['Location', '/location'],
+    ['Location', '/#location'],
     ['Search', '/search'],
   ]
   return (
