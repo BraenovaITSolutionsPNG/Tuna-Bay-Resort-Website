@@ -26,6 +26,7 @@ export default function BlueTunaScene() {
   const koiCanvas = useRef<HTMLCanvasElement>(null)
   const dayRef = useRef<HTMLDivElement>(null)
   const violetRef = useRef<HTMLDivElement>(null)
+  const glowRef = useRef<HTMLDivElement>(null)
   const nightRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -239,6 +240,7 @@ export default function BlueTunaScene() {
       const toN = smoothstep(endTop - 1.1*h, endTop - 0.1*h, y)
       if (dayRef.current) { dayRef.current.style.opacity = String(1-toV); dayRef.current.style.transform = `scale(${1+0.06*toV}) translateY(${-0.04*y}px)` }
       if (violetRef.current) violetRef.current.style.opacity = String(toV*(1-toN))
+      if (glowRef.current) glowRef.current.style.opacity = String(toV*(1-toN))
       if (nightRef.current) nightRef.current.style.opacity = String(toN)
 
       // ripple
@@ -295,10 +297,16 @@ export default function BlueTunaScene() {
     <div ref={root} className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
       <div ref={dayRef} className="absolute inset-0 will-change-[opacity,transform]" style={{ backgroundImage: `url(${DAY_IMAGE})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <canvas ref={pondCanvas} className="absolute inset-0 block h-full w-full opacity-0 transition-opacity duration-[1200ms]" />
+        {/* Tuna Bay atmosphere: warm daylight lift + ocean depth (keeps ripple lens) */}
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(120% 90% at 70% 18%, rgba(255,214,140,.22), rgba(255,214,140,0) 55%), linear-gradient(180deg, rgba(6,58,78,.10) 0%, rgba(5,45,64,.28) 52%, rgba(4,34,52,.72) 100%)' }} />
+        <div className="absolute inset-x-0 bottom-0 h-[38%]" style={{ background: 'linear-gradient(180deg, rgba(4,34,52,0), rgba(3,24,38,.78))' }} />
       </div>
-      <div ref={violetRef} className="absolute inset-0 opacity-0" style={{ background: 'linear-gradient(180deg,rgba(6,40,58,.72) 0%,rgba(8,49,64,.68) 50%,rgba(5,38,51,.72) 100%)' }} />
+      {/* Mid scroll: deep Pacific gradient, no flat purple */}
+      <div ref={violetRef} className="absolute inset-0 opacity-0" style={{ background: 'linear-gradient(180deg, #0b4f63 0%, #083140 46%, #052633 100%)' }} />
+      <div ref={glowRef} className="absolute inset-0 opacity-0" style={{ background: 'radial-gradient(80% 60% at 20% 10%, rgba(142,216,199,.16), rgba(142,216,199,0) 60%), radial-gradient(70% 55% at 85% 70%, rgba(231,111,81,.10), rgba(231,111,81,0) 65%)' }} />
       <div ref={nightRef} className="absolute inset-0 opacity-0" style={{ backgroundImage: `url(${NIGHT_IMAGE})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,rgba(5,38,51,.2),rgba(5,38,51,.55) 55%,rgba(5,38,51,.94))' }} />
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(4,28,42,.18) 0%, rgba(4,30,46,.48) 45%, rgba(5,38,51,.90) 100%)' }} />
+        <div className="absolute inset-0 opacity-40" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,.35) 1px, transparent 1px)', backgroundSize: '120px 120px', backgroundPosition: '20px 30px' }} />
       </div>
       <canvas ref={koiCanvas} className="absolute inset-0 block h-full w-full" />
     </div>
