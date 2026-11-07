@@ -124,13 +124,11 @@ SMTP_FROM=hello@tunabayresort.com
 
 ### Admin & staff
 - **Auth**: `POST /api/auth/login` returns JWT; admin/staff login pages store token.
-- **Seed users** (dev/mock):
-  - `admin@tunabay.com` / `admin123` (admin)
-  - `staff@tunabay.com` / `staff123` (staff)
+- **Seed users** (dev/mock): `admin@tunabay.com` (admin), `staff@tunabay.com` (staff). **Passwords are bcrypt-hashed server-side only.** Set `ADMIN_SEED_PASSWORD`/`STAFF_SEED_PASSWORD` in server env (production generates a random password if unset — set env and reseed). Manage via Admin/`/api/users`.
 - **Admin dashboard** (`/admin/*`): overview, bookings (table + calendar), rooms, facilities, menu, gallery, testimonials, users, settings.
 - **Staff dashboard** (`/staff`): bookings summary and status actions.
 
-> **Security note**: change `JWT_SECRET` and seed credentials before any non-local deployment. Several admin mutation routes in the current mock server are not fully auth-guarded; add JWT middleware consistently for production.
+> **Security note**: set a strong `JWT_SECRET` and seed passwords in server env before any non-local deployment. All admin mutation routes are JWT-protected in `server/index.ts`; keep secrets in server env (`.env`/Vercel project settings), never in browser/Vite `VITE_*`.
 
 ## API Reference (current mock server)
 
