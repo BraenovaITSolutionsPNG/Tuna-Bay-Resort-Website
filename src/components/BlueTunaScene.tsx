@@ -81,13 +81,13 @@ export default function BlueTunaScene() {
         const apply = (mat: THREE.Material) => {
           const mm = mat as THREE.MeshStandardMaterial & { clearcoat?: number; clearcoatRoughness?: number; sheen?: number; sheenColor?: THREE.Color }
           const name = (mm.name || '').toLowerCase()
-          // Real tuna palette: deep blue top, silvery sides, yellow finlets/fins, dark accents
+          // Bluefin tuna palette: deep blue-black top, silvery sides/belly, dark metallic blue fins (no yellow)
           if (name.includes('eye')) {
             mm.color.set('#101418'); mm.roughness = 0.18; mm.metalness = 0.2; mm.emissive?.set('#0a1822'); if ('emissiveIntensity' in mm) mm.emissiveIntensity = 0.15
           } else if (name.includes('top') || name.includes('dark')) {
-            mm.color.set('#0b3d78'); mm.roughness = 0.28; mm.metalness = 0.45; mm.emissive?.set('#082a55'); if ('emissiveIntensity' in mm) mm.emissiveIntensity = 0.22
+            mm.color.set('#0a3266'); mm.roughness = 0.28; mm.metalness = 0.48; mm.emissive?.set('#061f45'); if ('emissiveIntensity' in mm) mm.emissiveIntensity = 0.22
           } else if (name.includes('fin')) {
-            mm.color.set('#d8b24a'); mm.roughness = 0.34; mm.metalness = 0.18; mm.emissive?.set('#5a4308'); if ('emissiveIntensity' in mm) mm.emissiveIntensity = 0.18
+            mm.color.set('#1f4f78'); mm.roughness = 0.32; mm.metalness = 0.35; mm.emissive?.set('#0b2842'); if ('emissiveIntensity' in mm) mm.emissiveIntensity = 0.18
           } else { // main/sides/belly
             mm.color.set('#b8cad6'); mm.roughness = 0.26; mm.metalness = 0.5; mm.emissive?.set('#1b3b52'); if ('emissiveIntensity' in mm) mm.emissiveIntensity = 0.16
           }
