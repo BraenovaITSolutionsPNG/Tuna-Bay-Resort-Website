@@ -90,6 +90,8 @@ export default function BlueTunaScene() {
       })
     }
 
+    body.visible = false // show only when real model is ready (avoids fallback/orientation glitches)
+
     new GLTFLoader().load(FISH_GLB, (gltf) => {
       if (dead) return
       try {
@@ -97,71 +99,58 @@ export default function BlueTunaScene() {
         rootObj.updateMatrixWorld(true)
         tune(rootObj)
 
-        // normalize: center and scale to length 1, oriented for a natural side-swim
+        // normalize: center, align longest axis to +X (nose right), scale to length 1
         const wrap = new THREE.Group()
         wrap.add(rootObj)
+        rootObj.updateMatrixWorld(true)
+        let box = new THREE.Box3().setFromObject(rootObj)
+        let size = box.getSize(new THREE.Vector3())
+        // rotate so the longest dimension lies along X
+        if (size.z >= size.x && size.z >= size.y) wrap.rotation.y = Math.PI / 2
+        else if (size.y >= size.x && size.y >= size.z) wrap.rotation.z = -Math.PI / 2
         wrap.updateMatrixWorld(true)
-        const box0 = new THREE.Box3().setFromObject(wrap)
-        const c0 = box0.getCenter(new THREE.Vector3())
-        wrap.position.sub(c0)
+        box = new THREE.Box3().setFromObject(wrap)
+        const center = box.getCenter(new THREE.Vector3())
+        wrap.position.sub(center)
         wrap.updateMatrixWorld(true)
-        // orient: this tuna model's length runs along its body; rotate to swim along +X
-        wrap.rotation.y = Math.PI * 0.5
+        // ensure head points toward +X (heuristic: model faces +X after alignment; flip if needed)
+        wrap.rotation.y += Math.PI
         wrap.updateMatrixWorld(true)
-        const box = new THREE.Box3().setFromObject(wrap)
-        const len = Math.max(...box.getSize(new THREE.Vector3()).toArray()) || 1
-        const c = box.getCenter(new THREE.Vector3())
-        wrap.position.sub(c)
+        box = new THREE.Box3().setFromObject(wrap)
+        const len = Math.max(box.getSize(new THREE.Vector3()).x, 0.001)
         wrap.scale.setScalar(1 / len)
         body.add(wrap)
 
-        if (gltf.animations?.length) {
-          mixer = new THREE.AnimationMixer(rootObj)
-          // pick a swim-like clip if named, else first
-          const clip = gltf.animations.find((a) => /swim|move|idle|loop/i.test(a.name)) || gltf.animations[0]
-          mixer.clipAction(clip).play()
-        }
-        console.info('BlueTuna ready', { meshes: rootObj.children.length, len, animations: gltf.animations?.length || 0 })
+        const clip = gltf.animations.find((a) => /Swimming_Normal/i.test(a.name)) || gltf.animations.find((a) => /swim/i.test(a.name)) || gltf.animations[0]
+        mixer.clipAction(clip).play()
+        body.visible = true
+        console.info('BlueTuna ready', { clip: clip?.name, len, animations: gltf.animations?.length || 0 })
       } catch (e) { console.error('BlueTuna model setup failed', e) }
     }, undefined, (e) => { console.error('BlueTuna model load failed', FISH_GLB, e) })
 
-    // guaranteed-visible fallback until model arrives
-    const fallback = (() => {
-      const g = new THREE.Group()
-      const mat = new THREE.MeshStandardMaterial({ color: 0x33b7ff, emissive: 0x1e90ff, emissiveIntensity: 1.2, metalness: 0.35, roughness: 0.18 })
-      const bodyGeo = new THREE.SphereGeometry(0.5, 28, 20); bodyGeo.scale(1.9, 0.72, 0.42)
-      g.add(new THREE.Mesh(bodyGeo, mat))
-      const tail = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.62, 20), mat); tail.rotation.z = -Math.PI / 2; tail.position.set(-1.1, 0, 0); g.add(tail)
-      const fin = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.42, 16), mat); fin.position.set(0.05, 0.38, 0); g.add(fin)
-      const belly = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.3, 16), mat); belly.rotation.z = Math.PI; belly.position.set(0.05, -0.32, 0); g.add(belly)
-      g.scale.setScalar(0.85)
-      return g
-    })()
-    body.add(fallback)
-    const fallbackWatch = setInterval(() => { if (body.children.length > 1) { body.remove(fallback); clearInterval(fallbackWatch) } }, 200)
-    setTimeout(() => clearInterval(fallbackWatch), 15000)
+    // (procedural fallback removed — GLB loads locally; avoids double/orientation artifacts)
 
-    // controlled swim path: calm, clearly positioned (not erratic)
-    const anchors = () => {
+    // controlled swim path: calm, clearly positioned (nose +X; yaw 0=right, PI=left)
+    const anchors = (): Pose[] => {
       const h = window.innerHeight
       const top = (sel: string) => { const el = document.querySelector(sel) as HTMLElement | null; return el ? el.getBoundingClientRect().top + window.scrollY : h }
       const end = document.querySelector('#tuna-end') as HTMLElement | null
       const maxS = Math.max(0, document.documentElement.scrollHeight - h)
+      const endAt = Math.min(end ? end.offsetTop : maxS, maxS)
       const phone = window.innerWidth <= 820
-      // x/y: viewport-normalized (-1..1), s: fish length vs viewport height, yaw: gentle heading
       if (phone) return [
-        { at: 0, x: 0.18, y: 0.42, s: 0.34, yaw: 2.9, pitch: 0.02, roll: 0 },
-        { at: top('#tuna-about') + 0.15 * h, x: -0.1, y: -0.55, s: 0.26, yaw: 0.2, pitch: 0.02, roll: 0 },
-        { at: top('#tuna-features') + 0.15 * h, x: 0.12, y: -0.58, s: 0.26, yaw: 2.95, pitch: 0.02, roll: 0 },
-        { at: Math.min(end ? end.offsetTop : maxS, maxS), x: 0.0, y: -0.5, s: 0.24, yaw: 2.9, pitch: 0.02, roll: 0 },
-      ] as Pose[]
+        { at: 0, x: 0.22, y: 0.46, s: 0.30, yaw: Math.PI, pitch: 0, roll: 0 },              // hero: upper right, facing left
+        { at: top('#tuna-about') + 0.1 * h, x: -0.15, y: -0.42, s: 0.22, yaw: 0.12, pitch: 0, roll: 0 },
+        { at: top('#tuna-features') + 0.1 * h, x: 0.18, y: -0.46, s: 0.22, yaw: Math.PI - 0.12, pitch: 0, roll: 0 },
+        { at: endAt, x: 0, y: -0.38, s: 0.20, yaw: Math.PI, pitch: 0, roll: 0 },
+      ]
       return [
-        { at: 0, x: 0.52, y: 0.22, s: 0.42, yaw: 2.95, pitch: 0.04, roll: 0.02 },
-        { at: top('#tuna-about') + 0.2 * h, x: -0.48, y: -0.38, s: 0.34, yaw: 0.18, pitch: 0.03, roll: -0.02 },
-        { at: top('#tuna-features') + 0.2 * h, x: 0.46, y: -0.42, s: 0.34, yaw: 2.96, pitch: 0.03, roll: 0.02 },
-        { at: top('#tuna-experience') + 0.2 * h, x: -0.44, y: -0.36, s: 0.32, yaw: 0.18, pitch: 0.03, roll: -0.02 },
-        { at: Math.min(end ? end.offsetTop : maxS, maxS), x: 0.0, y: 0.48, s: 0.3, yaw: 2.95, pitch: 0.02, roll: 0 },
-      ] as Pose[]
+        { at: 0, x: 0.58, y: 0.18, s: 0.38, yaw: Math.PI - 0.15, pitch: 0.03, roll: 0 },     // hero: right side, clear of left text
+        { at: top('#tuna-about') + 0.2 * h, x: -0.52, y: -0.30, s: 0.28, yaw: 0.15, pitch: 0.02, roll: 0 },
+        { at: top('#tuna-features') + 0.15 * h, x: 0.50, y: -0.34, s: 0.28, yaw: Math.PI - 0.15, pitch: 0.02, roll: 0 },
+        { at: top('#tuna-experience') + 0.15 * h, x: -0.48, y: -0.28, s: 0.26, yaw: 0.15, pitch: 0.02, roll: 0 },
+        { at: endAt, x: 0.0, y: 0.42, s: 0.26, yaw: Math.PI - 0.12, pitch: 0, roll: 0 },
+      ]
     }
     let poses = anchors()
     let cur: Omit<Pose,'at'> = { ...poses[0] }
@@ -195,23 +184,22 @@ export default function BlueTunaScene() {
       // (ripple lens removed — hero image renders cleanly via CSS background)
 
       // tuna motion: calm, eased path (no camera/erratic tilt)
-      const inst = (y - lastY) / Math.max(dt, 0.001); lastY = y; vel += (inst - vel) * 0.1
-      const speedUp = Math.min(Math.abs(vel) / 1800, 1.2)
-      if (mixer && !reduce) mixer.update(dt * (1 + speedUp))
-      poses = anchors() // keep anchors fresh to section layout
+      const inst = (y - lastY) / Math.max(dt, 0.001); lastY = y; vel += (inst - vel) * 0.12
+      const speedUp = Math.min(Math.abs(vel) / 2000, 1.0)
+      if (mixer && !reduce) mixer.update(dt * (0.9 + speedUp))
       let target = poses[0]
       for (let i = 0; i < poses.length - 1; i++) {
         const a = poses[i], b = poses[i + 1]
         if (y >= a.at && y <= b.at) { const tt = easeInOut((y - a.at) / (b.at - a.at || 1)); target = { at: y, x: lerp(a.x,b.x,tt), y: lerp(a.y,b.y,tt), s: lerp(a.s,b.s,tt), yaw: lerp(a.yaw,b.yaw,tt), pitch: lerp(a.pitch,b.pitch,tt), roll: lerp(a.roll,b.roll,tt) } as any; break }
         if (y > b.at) target = b
       }
-      const k = reduce ? 1 : 1 - Math.exp(-2.4 * dt)
+      const k = reduce ? 1 : 1 - Math.exp(-2.0 * dt)
       ;(['x','y','s','yaw','pitch','roll'] as const).forEach((n) => { (cur as any)[n] += (((target as any)[n] || 0) - (cur as any)[n]) * k })
-      const bob = reduce ? 0 : Math.sin(0.8 * elapsed) * 0.012
-      const drift = reduce ? 0 : Math.sin(0.35 * elapsed) * 0.015
+      const bob = reduce ? 0 : Math.sin(0.7 * elapsed) * 0.01
+      const drift = reduce ? 0 : Math.sin(0.3 * elapsed) * 0.008
       const { fw, fh } = frustum()
       rig.position.set((cur.x + drift) * fw / 2, (cur.y + bob) * fh / 2, 0)
-      rig.rotation.set(cur.roll, cur.yaw + (reduce ? 0 : Math.sin(0.5 * elapsed) * 0.03), cur.pitch, 'XYZ')
+      rig.rotation.set(cur.roll, cur.yaw, cur.pitch, 'XYZ')
       body.scale.setScalar(cur.s * fh)
       renderer.render(scene, camera)
 
