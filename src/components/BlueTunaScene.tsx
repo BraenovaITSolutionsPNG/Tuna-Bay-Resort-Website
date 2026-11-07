@@ -127,54 +127,57 @@ export default function BlueTunaScene() {
 
     new GLTFLoader().load(FISH_GLB, (gltf) => {
       if (dead) return
-      const rootObj = gltf.scene
-      rootObj.updateMatrixWorld(true)
-      const meshes: THREE.Mesh[] = []
-      rootObj.traverse((o) => { if ((o as THREE.Mesh).isMesh) meshes.push(o as THREE.Mesh) })
-      meshes.forEach((m) => { m.geometry = m.geometry.clone(); m.geometry.applyMatrix4(m.matrixWorld) })
-      const box = new THREE.Box3()
-      meshes.forEach((m) => box.expandByObject(m))
-      const size = box.getSize(new THREE.Vector3())
-      let longest = 'x'
-      if (size.z >= size.x && size.z >= size.y) longest = 'z'
-      if (size.y >= size.x && size.y >= size.z) longest = 'y'
-      const rot = new THREE.Matrix4()
-      if (longest === 'z') rot.makeRotationY(Math.PI / 2)
-      if (longest === 'y') rot.makeRotationZ(-Math.PI / 2)
-      rot.multiply(new THREE.Matrix4().makeRotationY(Math.PI)) // nose +X
-      meshes.forEach((m) => m.geometry.applyMatrix4(rot))
-      const box2 = new THREE.Box3(); meshes.forEach((m) => box2.expandByObject(m))
-      const c = box2.getCenter(new THREE.Vector3()); const s2 = box2.getSize(new THREE.Vector3())
-      const len = Math.max(s2.x,s2.y,s2.z) || 1
-      meshes.forEach((m) => m.geometry.translate(-c.x,-c.y,-c.z))
-      const group = new THREE.Group()
-      swimUniforms = { time: { value: 0 }, speed: { value: 6.2 }, amp: { value: 0.075 }, freq: { value: 5.0 } }
-      const mat = new THREE.MeshPhysicalMaterial({
-        color: 0x1565c0, roughness: 0.2, metalness: 0.32,
-        clearcoat: 1, clearcoatRoughness: 0.1,
-        iridescence: 0.4, iridescenceIOR: 1.33, iridescenceThicknessRange: [160, 460],
-        emissive: 0x063a8f, emissiveIntensity: 0.38,
-        sheen: 0.45, sheenColor: new THREE.Color(0xbfe9ff),
-        transparent: true, opacity: 0.98, envMapIntensity: 1.0, side: THREE.DoubleSide,
-      })
-      mat.onBeforeCompile = (shader) => {
-        shader.uniforms.uTime = swimUniforms!.time
-        shader.uniforms.uSpeed = swimUniforms!.speed
-        shader.uniforms.uAmp = swimUniforms!.amp
-        shader.uniforms.uFreq = swimUniforms!.freq
-        shader.vertexShader = `uniform float uTime,uSpeed,uAmp,uFreq;\n` + shader.vertexShader
-        shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `
-          vec3 transformed = vec3(position);
-          float tail = clamp((0.32 - transformed.x) / 0.82, 0.0, 1.0);
-          float w = sin(transformed.x * uFreq - uTime * uSpeed);
-          transformed.z += w * uAmp * (0.15 + 1.6 * tail * tail);
-          transformed.y += cos(transformed.x * uFreq * 0.5 - uTime * uSpeed * 0.5) * uAmp * 0.12 * tail;
-        `)
-      }
-      meshes.forEach((m) => { m.material = mat; group.add(m) })
-      group.scale.setScalar(1/len)
-      body.add(group)
-    }, undefined, () => {})
+      try {
+        const rootObj = gltf.scene
+        rootObj.updateMatrixWorld(true)
+        const meshes: THREE.Mesh[] = []
+        rootObj.traverse((o) => { if ((o as THREE.Mesh).isMesh) meshes.push(o as THREE.Mesh) })
+        if (!meshes.length) throw new Error('no meshes')
+        meshes.forEach((m) => { m.geometry = m.geometry.clone(); m.geometry.applyMatrix4(m.matrixWorld); m.geometry.computeVertexNormals() })
+        const box = new THREE.Box3()
+        meshes.forEach((m) => box.expandByObject(m))
+        const size = box.getSize(new THREE.Vector3())
+        let longest = 'x'
+        if (size.z >= size.x && size.z >= size.y) longest = 'z'
+        if (size.y >= size.x && size.y >= size.z) longest = 'y'
+        const rot = new THREE.Matrix4()
+        if (longest === 'z') rot.makeRotationY(Math.PI / 2)
+        if (longest === 'y') rot.makeRotationZ(-Math.PI / 2)
+        rot.multiply(new THREE.Matrix4().makeRotationY(Math.PI)) // nose +X
+        meshes.forEach((m) => { m.geometry.applyMatrix4(rot); m.geometry.computeVertexNormals() })
+        const box2 = new THREE.Box3(); meshes.forEach((m) => box2.expandByObject(m))
+        const c = box2.getCenter(new THREE.Vector3()); const s2 = box2.getSize(new THREE.Vector3())
+        const len = Math.max(s2.x,s2.y,s2.z) || 1
+        meshes.forEach((m) => { m.geometry.translate(-c.x,-c.y,-c.z); m.geometry.computeVertexNormals() })
+        const group = new THREE.Group()
+        swimUniforms = { time: { value: 0 }, speed: { value: 6.2 }, amp: { value: 0.075 }, freq: { value: 5.0 } }
+        const mat = new THREE.MeshPhysicalMaterial({
+          color: 0x1565c0, roughness: 0.18, metalness: 0.35,
+          clearcoat: 1, clearcoatRoughness: 0.08,
+          iridescence: 0.35, iridescenceIOR: 1.33, iridescenceThicknessRange: [160, 460],
+          emissive: 0x0b5fd6, emissiveIntensity: 0.55,
+          sheen: 0.5, sheenColor: new THREE.Color(0xd6f1ff),
+          transparent: true, opacity: 0.99, envMapIntensity: 1.1, side: THREE.DoubleSide,
+        })
+        mat.onBeforeCompile = (shader) => {
+          shader.uniforms.uTime = swimUniforms!.time
+          shader.uniforms.uSpeed = swimUniforms!.speed
+          shader.uniforms.uAmp = swimUniforms!.amp
+          shader.uniforms.uFreq = swimUniforms!.freq
+          shader.vertexShader = `uniform float uTime,uSpeed,uAmp,uFreq;\n` + shader.vertexShader
+          shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `
+            vec3 transformed = vec3(position);
+            float tail = clamp((0.32 - transformed.x) / 0.82, 0.0, 1.0);
+            float w = sin(transformed.x * uFreq - uTime * uSpeed);
+            transformed.z += w * uAmp * (0.15 + 1.6 * tail * tail);
+            transformed.y += cos(transformed.x * uFreq * 0.5 - uTime * uSpeed * 0.5) * uAmp * 0.12 * tail;
+          `)
+        }
+        meshes.forEach((m) => { m.material = mat; group.add(m) })
+        group.scale.setScalar(1/len)
+        body.add(group)
+      } catch (e) { console.error('BlueTuna model setup failed', e) }
+    }, undefined, (e) => { console.error('BlueTuna model load failed', FISH_GLB, e) })
 
     // scroll poses
     const anchors = () => {
