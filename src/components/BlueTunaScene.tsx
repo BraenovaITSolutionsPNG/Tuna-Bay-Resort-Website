@@ -5,7 +5,8 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 
 const DAY_IMAGE = '/images/tuna-bay-hero.jpg'
 const NIGHT_IMAGE = '/images/tuna-bay-waterfront.png'
-const FISH_GLB = 'https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20261104_151843_47d87652-1c40-465c-b0d6-cd94c22a9d3e.glb'
+// Quaternius "Tuna" (CC0) via bob6664569/open-water; hosted locally to avoid CORS/dependency issues.
+const FISH_GLB = '/models/tuna.glb'
 
 type Pose = { at: number; x: number; y: number; s: number; yaw: number; pitch: number; roll: number }
 
