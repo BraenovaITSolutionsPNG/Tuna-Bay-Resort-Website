@@ -301,11 +301,11 @@ export default function BlueTunaScene() {
   }, [])
 
   return (
-    <div ref={root} className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
+    <div ref={root} className="pointer-events-none fixed inset-0 overflow-hidden" style={{ zIndex: 5 }} aria-hidden="true">
       <div ref={dayRef} className="absolute inset-0 will-change-[opacity,transform]" style={{ backgroundImage: `url(${DAY_IMAGE})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <canvas ref={pondCanvas} className="absolute inset-0 block h-full w-full opacity-0 transition-opacity duration-[1200ms]" />
       </div>
-      <div ref={violetRef} className="absolute inset-0 opacity-0" style={{ background: 'linear-gradient(180deg,#06283a 0%,#083140 50%,#052633 100%)' }} />
+      <div ref={violetRef} className="absolute inset-0 opacity-0" style={{ background: 'linear-gradient(180deg,rgba(6,40,58,.72) 0%,rgba(8,49,64,.68) 50%,rgba(5,38,51,.72) 100%)' }} />
       <div ref={nightRef} className="absolute inset-0 opacity-0" style={{ backgroundImage: `url(${NIGHT_IMAGE})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,rgba(5,38,51,.2),rgba(5,38,51,.55) 55%,rgba(5,38,51,.94))' }} />
       </div>

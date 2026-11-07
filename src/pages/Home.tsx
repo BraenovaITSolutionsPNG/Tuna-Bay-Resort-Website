@@ -51,8 +51,8 @@ export default function Home() {
   return (
     <main className="relative overflow-x-hidden bg-[#052633] text-white">
       <BlueTunaScene />
-      <div className="relative z-10">
       <Header variant="dark" />
+      <div className="relative z-[3]">
       <section id="tuna-hero" className="relative min-h-[100svh] text-white overflow-hidden">
         <div className="relative z-10 flex flex-col justify-end sm:justify-center min-h-[100svh] page-wrap pb-10 sm:pb-8 pt-24 sm:pt-36">
           <div className="max-w-3xl">
