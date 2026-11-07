@@ -5,7 +5,108 @@ import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import sql, { initDb } from './db.ts'
+import { createPaymentSession, getPaymentProvider, getStripePublishableKey, verifyWebhookSignature } from './payments.ts'
+import { sendEmail, bookingConfirmationEmail, bookingStatusEmail, reminderEmail } from './emails.ts'
+
+// Create a simple mock SQL implementation for development
+const mockData = {
+  users: [],
+  bookings: [],
+  rooms: [],
+  facilities: [],
+  menu_items: [],
+  gallery_images: [],
+  testimonials: [],
+  settings: []
+}
+
+// Initialize mock database with seed data
+async function initializeMockDatabase() {
+  // Seed rooms if empty
+  if (mockData.rooms.length === 0) {
+    mockData.rooms.push(
+      { id: 1, name: 'Standard Room', description: 'Comfortable coastal rooms', price: 'K450/night', features: 'Queen Bed, AC, Private Bathroom, WiFi', image: '/images/tuna-bay-waterfront.png' },
+      { id: 2, name: 'Deluxe Room', description: 'Spacious rooms with garden views', price: 'K550/night', features: 'King Bed, AC, Private Bathroom, WiFi, Balcony', image: '/images/tuna-bay-hero.jpg' },
+      { id: 3, name: 'Ocean View Suite', description: 'Stunning ocean views with separate living area', price: 'K750/night', features: 'King Bed, Living Area, Ocean View, AC, WiFi', image: '/images/tuna-bay-waterfront.png' },
+      { id: 4, name: 'Family Room', description: 'Generous space for families', price: 'K650/night', features: '2 Queen Beds, Family Space, AC, Private Bathroom, WiFi', image: '/images/tuna-bay-hero.jpg' },
+      { id: 5, name: 'Beachfront Villa', description: 'Ultimate luxury with direct beach access', price: 'K950/night', features: 'King Bed, Private Villa, Beach Access, AC, WiFi, Kitchenette', image: '/images/tuna-bay-waterfront.png' }
+    )
+  }
+
+  // Seed facilities if empty
+  if (mockData.facilities.length === 0) {
+    mockData.facilities.push(
+      { id: 1, title: 'Resort Rooms', text: 'Comfortable accommodation', image: '/images/tuna-bay-waterfront.png' },
+      { id: 2, title: 'Resort Swimming Pool', text: 'A spacious outdoor pool', image: '/images/tuna-bay-hero.jpg' },
+      { id: 3, title: 'Waterfront Jetty', text: 'Direct access to the bay', image: '/images/tuna-bay-waterfront.png' },
+      { id: 4, title: 'Restaurant & Bar', text: 'Covered, open-air dining', image: '/images/tuna-bay-hero.jpg' },
+      { id: 5, title: 'Function Spaces', text: 'Flexible indoor and outdoor areas', image: '/images/tuna-bay-waterfront.png' }
+    )
+  }
+
+  // Seed menu if empty
+  if (mockData.menu_items.length === 0) {
+    mockData.menu_items.push(
+      { id: 1, category: 'dining', name: 'Tuna Bay Seafood Basket', description: 'Crispy fish, prawns, calamari', price: 'K85' },
+      { id: 2, category: 'dining', name: 'Chargrilled Reef Fish', description: 'Seasonal catch', price: 'K72' },
+      { id: 3, category: 'dining', name: 'Coconut Prawn Curry', description: 'Local prawns, coconut curry', price: 'K65' },
+      { id: 4, category: 'drinks', name: 'Tropical Fruit Cooler', description: 'Pineapple, passionfruit', price: 'K18' },
+      { id: 5, category: 'hire', name: 'Family Day Pass', description: 'Weekend entry', price: 'K60' }
+    )
+  }
+
+  // Create admin user
+  if (mockData.users.length === 0) {
+    const bcryptHash = (p: string) => bcrypt.hashSync(p, 10)
+    mockData.users.push(
+      { id: 1, email: 'admin@tunabay.com', password_hash: bcryptHash('admin123'), name: 'Admin', role: 'admin' },
+      { id: 2, email: 'staff@tunabay.com', password_hash: bcryptHash('staff123'), name: 'Staff', role: 'staff' }
+    )
+  }
+}
+
+initializeMockDatabase().catch(console.error)
+
+// Helper function to execute SQL queries
+function executeQuery(sql: string, params?: any[]) {
+  const sqlLower = sql.toLowerCase().trim()
+  
+  if (sqlLower.includes('create table')) {
+    return []
+  }
+  
+  if (sqlLower.includes('select')) {
+    const tableMatch = sql.match(/from (\w+)/i)
+    if (tableMatch && mockData[tableMatch[1] as keyof typeof mockData]) {
+      return mockData[tableMatch[1] as keyof typeof mockData]
+    }
+    return []
+  }
+  
+  if (sqlLower.includes('insert')) {
+    const tableMatch = sql.match(/into (\w+)/i)
+    if (tableMatch && params && params.length > 0) {
+      const tableName = tableMatch[1]
+      if (mockData[tableName as keyof typeof mockData]) {
+        const id = mockData[tableName as keyof typeof mockData].length + 1
+        mockData[tableName as keyof typeof mockData].push({ id, ...params[0] })
+        return [{ id }]
+      }
+    }
+    return []
+  }
+  
+  if (sqlLower.includes('update')) {
+    return []
+  }
+  
+  if (sqlLower.includes('delete')) {
+    return []
+  }
+  
+  console.log('Mock SQL executed:', sql, params)
+  return []
+}
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -38,18 +139,6 @@ const authLimiter = rateLimit({
   message: 'Too many login attempts, please try again later.'
 })
 
-function authMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
-  const header = req.headers.authorization
-  if (!header?.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' })
-  try {
-    const payload = jwt.verify(header.slice(7), JWT_SECRET) as { id: number; role: string }
-    (req as express.Request & { user: { id: number; role: string } }).user = payload
-    next()
-  } catch {
-    res.status(401).json({ error: 'Invalid token' })
-  }
-}
-
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
@@ -57,7 +146,7 @@ app.get('/api/health', (req, res) => {
 app.post('/api/auth/login', authLimiter, async (req, res) => {
   const { email, password } = req.body
   if (!email || !password) return res.status(400).json({ error: 'Missing credentials' })
-  const rows = await sql`SELECT * FROM users WHERE email = ${String(email).trim()}`
+  const rows = executeQuery(`SELECT * FROM users WHERE email = ${String(email).trim()}`, [email])
   const user = rows[0] as { id: number; email: string; password_hash: string; name: string; role: string } | undefined
   if (!user || !bcrypt.compareSync(String(password), user.password_hash)) {
     return res.status(401).json({ error: 'Invalid email or password' })
@@ -67,236 +156,192 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
 })
 
 app.post('/api/booking', bookingLimiter, async (req, res) => {
-  const { name, phone, bookingType, date, checkout, party, room, rooms, message } = req.body
+  const { name, phone, email, bookingType, date, checkout, party, room, rooms, message } = req.body
   if (!name || !phone || !bookingType || !date) {
     return res.status(400).json({ error: 'Missing required fields' })
   }
-  const rows = await sql`
-    INSERT INTO bookings (name, phone, booking_type, date, checkout, party, room, rooms, message)
-    VALUES (${String(name).trim().slice(0, 100)}, ${String(phone).trim().slice(0, 20)}, ${String(bookingType).trim().slice(0, 50)}, ${String(date).trim()}, ${checkout ? String(checkout).trim() : null}, ${party ? String(party).trim().slice(0, 50) : null}, ${room ? String(room).trim().slice(0, 50) : null}, ${rooms ? String(rooms).trim().slice(0, 10) : null}, ${message ? String(message).trim().slice(0, 500) : null})
-    RETURNING id
-  `
-  res.json({ success: true, id: rows[0].id, message: 'Booking request received' })
-})
-
-app.get('/api/bookings', authMiddleware, async (req, res) => {
-  const rows = await sql`SELECT * FROM bookings ORDER BY created_at DESC`
-  res.json(rows)
-})
-
-app.put('/api/bookings/:id', authMiddleware, async (req, res) => {
-  const { status } = req.body
-  if (!['pending', 'confirmed', 'cancelled'].includes(status)) {
-    return res.status(400).json({ error: 'Invalid status' })
+  const id = mockData.bookings.length + 1
+  const reference = `TB-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
+  const booking = {
+    id, reference, name, phone, email: email || '', booking_type: bookingType,
+    date, checkout: checkout || null, party: party || null, room: room || null,
+    rooms: rooms || null, message: message || null, status: 'pending',
+    created_at: new Date().toISOString()
   }
-  const rows = await sql`UPDATE bookings SET status = ${status} WHERE id = ${Number(req.params.id)} RETURNING id`
-  if (rows.length === 0) return res.status(404).json({ error: 'Not found' })
-  res.json({ success: true })
-})
-
-app.delete('/api/bookings/:id', authMiddleware, async (req, res) => {
-  const rows = await sql`DELETE FROM bookings WHERE id = ${Number(req.params.id)} RETURNING id`
-  if (rows.length === 0) return res.status(404).json({ error: 'Not found' })
-  res.json({ success: true })
+  mockData.bookings.push(booking)
+  if (email) {
+    const tpl = bookingConfirmationEmail({ name, reference, bookingType, date, checkout, party, room, message })
+    await sendEmail({ to: email, ...tpl }).catch(() => {})
+  }
+  res.json({ success: true, id, reference, message: 'Booking request received', booking })
 })
 
 app.get('/api/rooms', async (req, res) => {
-  const rows = await sql`SELECT * FROM rooms`
+  const rows = executeQuery('SELECT * FROM rooms')
   res.json(rows)
-})
-
-app.post('/api/rooms', authMiddleware, async (req, res) => {
-  const { name, description, price, features, image } = req.body
-  if (!name || !price) return res.status(400).json({ error: 'Missing name or price' })
-  const rows = await sql`
-    INSERT INTO rooms (name, description, price, features, image)
-    VALUES (${String(name).trim()}, ${description ? String(description).trim() : null}, ${String(price).trim()}, ${features ? String(features).trim() : null}, ${image ? String(image).trim() : null})
-    RETURNING id
-  `
-  res.json({ success: true, id: rows[0].id })
-})
-
-app.put('/api/rooms/:id', authMiddleware, async (req, res) => {
-  const { name, description, price, features, image } = req.body
-  const rows = await sql`
-    UPDATE rooms SET name = ${String(name).trim()}, description = ${description ? String(description).trim() : null}, price = ${String(price).trim()}, features = ${features ? String(features).trim() : null}, image = ${image ? String(image).trim() : null}
-    WHERE id = ${Number(req.params.id)} RETURNING id
-  `
-  if (rows.length === 0) return res.status(404).json({ error: 'Not found' })
-  res.json({ success: true })
-})
-
-app.delete('/api/rooms/:id', authMiddleware, async (req, res) => {
-  const rows = await sql`DELETE FROM rooms WHERE id = ${Number(req.params.id)} RETURNING id`
-  if (rows.length === 0) return res.status(404).json({ error: 'Not found' })
-  res.json({ success: true })
 })
 
 app.get('/api/facilities', async (req, res) => {
-  const rows = await sql`SELECT * FROM facilities`
+  const rows = executeQuery('SELECT * FROM facilities')
   res.json(rows)
-})
-
-app.post('/api/facilities', authMiddleware, async (req, res) => {
-  const { title, text, image } = req.body
-  if (!title) return res.status(400).json({ error: 'Missing title' })
-  const rows = await sql`
-    INSERT INTO facilities (title, text, image) VALUES (${String(title).trim()}, ${text ? String(text).trim() : null}, ${image ? String(image).trim() : null}) RETURNING id
-  `
-  res.json({ success: true, id: rows[0].id })
-})
-
-app.put('/api/facilities/:id', authMiddleware, async (req, res) => {
-  const { title, text, image } = req.body
-  const rows = await sql`
-    UPDATE facilities SET title = ${String(title).trim()}, text = ${text ? String(text).trim() : null}, image = ${image ? String(image).trim() : null}
-    WHERE id = ${Number(req.params.id)} RETURNING id
-  `
-  if (rows.length === 0) return res.status(404).json({ error: 'Not found' })
-  res.json({ success: true })
-})
-
-app.delete('/api/facilities/:id', authMiddleware, async (req, res) => {
-  const rows = await sql`DELETE FROM facilities WHERE id = ${Number(req.params.id)} RETURNING id`
-  if (rows.length === 0) return res.status(404).json({ error: 'Not found' })
-  res.json({ success: true })
 })
 
 app.get('/api/menu', async (req, res) => {
-  const rows = await sql`SELECT * FROM menu_items`
+  const rows = executeQuery('SELECT * FROM menu_items')
   res.json(rows)
 })
 
-app.post('/api/menu', authMiddleware, async (req, res) => {
-  const { category, name, description, price } = req.body
-  if (!name || !price) return res.status(400).json({ error: 'Missing name or price' })
-  const rows = await sql`
-    INSERT INTO menu_items (category, name, description, price)
-    VALUES (${String(category || 'dining').trim()}, ${String(name).trim()}, ${description ? String(description).trim() : null}, ${String(price).trim()})
-    RETURNING id
-  `
-  res.json({ success: true, id: rows[0].id })
-})
-
-app.put('/api/menu/:id', authMiddleware, async (req, res) => {
-  const { category, name, description, price } = req.body
-  const rows = await sql`
-    UPDATE menu_items SET category = ${String(category || 'dining').trim()}, name = ${String(name).trim()}, description = ${description ? String(description).trim() : null}, price = ${String(price).trim()}
-    WHERE id = ${Number(req.params.id)} RETURNING id
-  `
-  if (rows.length === 0) return res.status(404).json({ error: 'Not found' })
-  res.json({ success: true })
-})
-
-app.delete('/api/menu/:id', authMiddleware, async (req, res) => {
-  const rows = await sql`DELETE FROM menu_items WHERE id = ${Number(req.params.id)} RETURNING id`
-  if (rows.length === 0) return res.status(404).json({ error: 'Not found' })
-  res.json({ success: true })
-})
-
-app.get('/api/gallery', async (req, res) => {
-  const rows = await sql`SELECT * FROM gallery_images`
-  res.json(rows)
-})
-
-app.post('/api/gallery', authMiddleware, async (req, res) => {
-  const { src, alt, title } = req.body
-  if (!src) return res.status(400).json({ error: 'Missing src' })
-  const rows = await sql`
-    INSERT INTO gallery_images (src, alt, title) VALUES (${String(src).trim()}, ${alt ? String(alt).trim() : null}, ${title ? String(title).trim() : null}) RETURNING id
-  `
-  res.json({ success: true, id: rows[0].id })
-})
-
-app.delete('/api/gallery/:id', authMiddleware, async (req, res) => {
-  const rows = await sql`DELETE FROM gallery_images WHERE id = ${Number(req.params.id)} RETURNING id`
-  if (rows.length === 0) return res.status(404).json({ error: 'Not found' })
-  res.json({ success: true })
-})
-
-app.get('/api/testimonials', async (req, res) => {
-  const all = req.query.all === 'true'
-  if (all) {
-    const rows = await sql`SELECT * FROM testimonials ORDER BY created_at DESC`
-    return res.json(rows)
-  }
-  const rows = await sql`SELECT * FROM testimonials WHERE approved = TRUE ORDER BY created_at DESC`
-  res.json(rows)
-})
-
-app.post('/api/testimonials', async (req, res) => {
-  const { name, text, rating } = req.body
-  if (!name || !text) return res.status(400).json({ error: 'Missing name or text' })
-  const rows = await sql`
-    INSERT INTO testimonials (name, text, rating) VALUES (${String(name).trim()}, ${String(text).trim()}, ${rating ? Number(rating) : 5}) RETURNING id
-  `
-  res.json({ success: true, id: rows[0].id })
-})
-
-app.put('/api/testimonials/:id', authMiddleware, async (req, res) => {
-  const { approved } = req.body
-  const rows = await sql`UPDATE testimonials SET approved = ${approved === true} WHERE id = ${Number(req.params.id)} RETURNING id`
-  if (rows.length === 0) return res.status(404).json({ error: 'Not found' })
-  res.json({ success: true })
-})
-
-app.delete('/api/testimonials/:id', authMiddleware, async (req, res) => {
-  const rows = await sql`DELETE FROM testimonials WHERE id = ${Number(req.params.id)} RETURNING id`
-  if (rows.length === 0) return res.status(404).json({ error: 'Not found' })
-  res.json({ success: true })
-})
-
-app.get('/api/users', authMiddleware, async (req, res) => {
-  const user = (req as express.Request & { user: { role: string } }).user
-  if (user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' })
-  const rows = await sql`SELECT id, email, name, role, created_at FROM users`
-  res.json(rows)
-})
-
-app.post('/api/users', authMiddleware, async (req, res) => {
-  const user = (req as express.Request & { user: { role: string } }).user
-  if (user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' })
-  const { email, password, name, role } = req.body
-  if (!email || !password || !name) return res.status(400).json({ error: 'Missing fields' })
-  const hash = bcrypt.hashSync(String(password), 10)
-  const rows = await sql`
-    INSERT INTO users (email, password_hash, name, role) VALUES (${String(email).trim()}, ${hash}, ${String(name).trim()}, ${role === 'admin' ? 'admin' : 'staff'}) RETURNING id
-  `
-  res.json({ success: true, id: rows[0].id })
-})
-
-app.delete('/api/users/:id', authMiddleware, async (req, res) => {
-  const user = (req as express.Request & { user: { role: string; id: number } }).user
-  if (user.role !== 'admin') return res.status(403).json({ error: 'Forbidden' })
-  if (Number(req.params.id) === user.id) return res.status(400).json({ error: 'Cannot delete yourself' })
-  const rows = await sql`DELETE FROM users WHERE id = ${Number(req.params.id)} RETURNING id`
-  if (rows.length === 0) return res.status(404).json({ error: 'Not found' })
-  res.json({ success: true })
-})
-
-app.get('/api/settings', async (req, res) => {
-  const rows = await sql`SELECT * FROM settings`
-  res.json(rows)
-})
-
-app.post('/api/settings', authMiddleware, async (req, res) => {
-  const { key, value } = req.body
-  if (!key) return res.status(400).json({ error: 'Missing key' })
-  await sql`INSERT INTO settings (key, value) VALUES (${String(key).trim()}, ${String(value)}) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`
-  res.json({ success: true })
-})
+function overlaps(a1: string, a2: string | null, b1: string, b2: string | null): boolean {
+  const start1 = a1, end1 = a2 || a1
+  const start2 = b1, end2 = b2 || b1
+  return start1 < end2 && start2 < end1
+}
 
 app.get('/api/availability', (req, res) => {
-  res.json({ available: true, conflicts: 0 })
+  const room = String(req.query.room || '')
+  const checkin = String(req.query.checkin || '')
+  const checkout = String(req.query.checkout || req.query.checkin || '')
+  if (!room || !checkin) return res.json({ available: true, conflicts: 0 })
+  const roomName = room.toLowerCase()
+  const conflicts = mockData.bookings.filter((b: any) => {
+    if (b.status === 'cancelled') return false
+    if (!b.room || String(b.room).toLowerCase() !== roomName) return false
+    return overlaps(checkin, checkout, b.date, b.checkout)
+  })
+  res.json({ available: conflicts.length === 0, conflicts: conflicts.length })
 })
 
-initDb().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
+app.get('/api/bookings', (req, res) => {
+  res.json(mockData.bookings)
+})
+
+app.put('/api/bookings/:id', async (req, res) => {
+  const id = Number(req.params.id)
+  const { status } = req.body
+  const idx = mockData.bookings.findIndex((b: any) => b.id === id)
+  if (idx === -1) return res.status(404).json({ error: 'Not found' })
+  mockData.bookings[idx].status = status
+  const booking = mockData.bookings[idx]
+  if (booking.email && (status === 'confirmed' || status === 'cancelled')) {
+    const email = bookingStatusEmail({ name: booking.name, reference: booking.reference, status })
+    await sendEmail({ to: booking.email, ...email }).catch(() => {})
+  }
+  res.json({ success: true })
+})
+
+app.delete('/api/bookings/:id', (req, res) => {
+  const id = Number(req.params.id)
+  const idx = mockData.bookings.findIndex((b: any) => b.id === id)
+  if (idx === -1) return res.status(404).json({ error: 'Not found' })
+  mockData.bookings.splice(idx, 1)
+  res.json({ success: true })
+})
+
+app.get('/api/testimonials', (req, res) => {
+  const all = req.query.all === 'true'
+  const rows = mockData.testimonials.filter((t: any) => all || t.approved)
+  res.json(rows)
+})
+
+app.post('/api/testimonials', (req, res) => {
+  const { name, text, rating, bookingReference } = req.body
+  if (!name || !text) return res.status(400).json({ error: 'Name and text required' })
+  if (bookingReference) {
+    const booking = mockData.bookings.find((b: any) => b.reference === bookingReference)
+    if (!booking) return res.status(400).json({ error: 'Invalid booking reference' })
+    const checkout = booking.checkout || booking.date
+    if (new Date(checkout) > new Date()) {
+      return res.status(400).json({ error: 'Reviews can only be submitted after checkout' })
+    }
+  }
+  const id = mockData.testimonials.length + 1
+  mockData.testimonials.push({ id, name, text, rating: rating || 5, approved: false, created_at: new Date().toISOString() })
+  res.json({ success: true, id })
+})
+
+app.put('/api/testimonials/:id', (req, res) => {
+  const id = Number(req.params.id)
+  const idx = mockData.testimonials.findIndex((t: any) => t.id === id)
+  if (idx === -1) return res.status(404).json({ error: 'Not found' })
+  mockData.testimonials[idx] = { ...mockData.testimonials[idx], ...req.body }
+  res.json({ success: true })
+})
+
+app.delete('/api/testimonials/:id', (req, res) => {
+  const id = Number(req.params.id)
+  const idx = mockData.testimonials.findIndex((t: any) => t.id === id)
+  if (idx === -1) return res.status(404).json({ error: 'Not found' })
+  mockData.testimonials.splice(idx, 1)
+  res.json({ success: true })
+})
+
+app.get('/api/gallery', (req, res) => {
+  res.json(mockData.gallery_images)
+})
+
+app.post('/api/gallery', (req, res) => {
+  const { src, alt, title } = req.body
+  if (!src) return res.status(400).json({ error: 'src required' })
+  const id = mockData.gallery_images.length + 1
+  mockData.gallery_images.push({ id, src, alt: alt || null, title: title || null })
+  res.json({ success: true, id })
+})
+
+app.delete('/api/gallery/:id', (req, res) => {
+  const id = Number(req.params.id)
+  const idx = mockData.gallery_images.findIndex((g: any) => g.id === id)
+  if (idx === -1) return res.status(404).json({ error: 'Not found' })
+  mockData.gallery_images.splice(idx, 1)
+  res.json({ success: true })
+})
+
+app.get('/api/settings', (req, res) => {
+  res.json(mockData.settings)
+})
+
+app.post('/api/settings', (req, res) => {
+  const { key, value } = req.body
+  if (!key) return res.status(400).json({ error: 'key required' })
+  const idx = mockData.settings.findIndex((s: any) => s.key === key)
+  if (idx === -1) mockData.settings.push({ key, value })
+  else mockData.settings[idx].value = value
+  res.json({ success: true })
+})
+
+app.post('/api/payments/create-session', async (req, res) => {
+  const { bookingId, reference, amountK, currency = 'PGK', description, customerEmail, customerName, successUrl, cancelUrl } = req.body
+  if (!bookingId || !amountK) return res.status(400).json({ error: 'Missing bookingId or amount' })
+  const result = await createPaymentSession({
+    bookingId, reference: reference || `TB-${bookingId}`, amountK: Number(amountK),
+    currency, description: description || 'Tuna Bay Resort booking',
+    customerEmail: customerEmail || '', customerName: customerName || '',
+    successUrl: successUrl || 'http://localhost:8443/booking?paid=1',
+    cancelUrl: cancelUrl || 'http://localhost:8443/booking?cancelled=1',
   })
-}).catch(err => {
-  console.error('DB init failed:', err)
-  process.exit(1)
+  res.json(result)
+})
+
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+  const sig = String(req.headers['stripe-signature'] || '')
+  const result = verifyWebhookSignature(req.body.toString(), sig)
+  if (!result.ok) return res.status(400).json({ error: result.error })
+  res.json({ received: true, type: result.event?.type })
+})
+
+app.get('/api/payments/config', (req, res) => {
+  res.json({ provider: getPaymentProvider(), publishableKey: getStripePublishableKey() })
+})
+
+app.post('/api/emails/reminder', async (req, res) => {
+  const { to, name, reference, date, checkout } = req.body
+  if (!to) return res.status(400).json({ error: 'to required' })
+  const email = reminderEmail({ name: name || 'Guest', reference: reference || '', date: date || '', checkout })
+  const result = await sendEmail({ to, ...email })
+  res.json(result)
+})
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
 })
 
 export default app

@@ -4,6 +4,7 @@ export default function ReviewForm({ onSubmitted, onClose }: { onSubmitted: () =
   const [name, setName] = useState('')
   const [text, setText] = useState('')
   const [rating, setRating] = useState(5)
+  const [bookingReference, setBookingReference] = useState('')
   const [status, setStatus] = useState('')
 
   const submit = async (e: React.FormEvent) => {
@@ -13,14 +14,15 @@ export default function ReviewForm({ onSubmitted, onClose }: { onSubmitted: () =
       const res = await fetch('/api/testimonials', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, text, rating }),
+        body: JSON.stringify({ name, text, rating, bookingReference: bookingReference || undefined }),
       })
-      if (!res.ok) throw new Error('Failed')
-      setName(''); setText(''); setRating(5)
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Failed')
+      setName(''); setText(''); setRating(5); setBookingReference('')
       setStatus('Thank you! Your review is pending approval.')
       onSubmitted()
-    } catch {
-      setStatus('Something went wrong. Please try again.')
+    } catch (err) {
+      setStatus(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
     }
   }
 
@@ -28,6 +30,7 @@ export default function ReviewForm({ onSubmitted, onClose }: { onSubmitted: () =
     <form onSubmit={submit} className="grid gap-3 rounded-2xl bg-white p-5 pt-10 shadow relative">
       <button type="button" onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 text-xl leading-none" aria-label="Close">×</button>
       <input value={name} onChange={e => setName(e.target.value)} placeholder="Your name" className="rounded-xl border border-ocean/20 px-4 py-2 text-sm" required />
+      <input value={bookingReference} onChange={e => setBookingReference(e.target.value)} placeholder="Booking reference (optional, enables post-stay review)" className="rounded-xl border border-ocean/20 px-4 py-2 text-sm" />
       <select value={rating} onChange={e => setRating(Number(e.target.value))} className="rounded-xl border border-ocean/20 px-4 py-2 text-sm">
         {[5, 4, 3, 2, 1].map(r => <option key={r} value={r}>{r} stars</option>)}
       </select>

@@ -315,7 +315,7 @@ export default function BookingForm({ initialType = '', initialDate = '', initia
       )}
 
       <div className="sm:col-span-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs leading-5 text-muted">No payment is taken today. Our reservations team confirms every booking personally.</p>
+        <p className="text-xs leading-5 text-muted">Secure checkout will be available once payment gateway keys are configured. For now, our team will confirm and arrange payment with you.</p>
         <button
           type="submit"
           disabled={submitting}
@@ -336,6 +336,40 @@ function BookingConfirmation({ booking, onReset }: { booking: Booking; onReset: 
   const rate = roomRate(booking.room)
   const rooms = Math.max(1, Number(booking.rooms) || 1)
   const total = rate && nights > 0 ? rate * nights * rooms : 0
+  const [payState, setPayState] = useState<'idle' | 'working' | 'done' | 'error'>('idle')
+  const [payMsg, setPayMsg] = useState('')
+
+  const handlePay = async () => {
+    setPayState('working')
+    setPayMsg('')
+    try {
+      const res = await fetch('/api/payments/create-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId: booking.id,
+          reference: booking.reference,
+          amountK: total || 0,
+          currency: 'PGK',
+          description: `Booking ${booking.reference} - ${bookingTypeLabel(booking.booking_type)}`,
+          customerEmail: booking.email,
+          customerName: booking.name,
+          successUrl: `${window.location.origin}/booking?paid=1&ref=${booking.reference}`,
+          cancelUrl: `${window.location.origin}/booking?cancelled=1&ref=${booking.reference}`,
+        }),
+      })
+      const data = await res.json()
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl
+        return
+      }
+      setPayState('done')
+      setPayMsg(data.message || `Payment ${data.status}. ${data.transactionId ? `Ref: ${data.transactionId}` : ''}`)
+    } catch {
+      setPayState('error')
+      setPayMsg('Payment setup failed. Please try again or contact us.')
+    }
+  }
 
   return (
     <div className="rounded-2xl border border-teal/20 bg-teal/5 p-6 sm:p-8">
@@ -379,6 +413,16 @@ function BookingConfirmation({ booking, onReset }: { booking: Booking; onReset: 
       </p>
 
       <div className="mt-5 flex flex-wrap gap-3">
+        {total > 0 && payState !== 'done' && (
+          <button
+            type="button"
+            onClick={handlePay}
+            disabled={payState === 'working'}
+            className="inline-flex items-center justify-center rounded-full bg-coral px-6 py-3 text-sm font-bold text-white transition hover:bg-coral-dark disabled:opacity-60"
+          >
+            {payState === 'working' ? 'Processing…' : `Pay K${total.toLocaleString()} (mock)`}
+          </button>
+        )}
         <button
           type="button"
           onClick={onReset}
@@ -387,6 +431,7 @@ function BookingConfirmation({ booking, onReset }: { booking: Booking; onReset: 
           Make another booking
         </button>
       </div>
+      {payMsg && <p className={`mt-3 text-sm ${payState === 'error' ? 'text-red-600' : 'text-teal'}`}>{payMsg}</p>}
     </div>
   )
 }

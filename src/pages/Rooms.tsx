@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Header, Footer, Eyebrow } from '../components/Layout'
+import CalendarView from '../components/CalendarView'
+import { Booking, listBookings } from '../lib/bookings'
 
 interface Room {
   id: number
@@ -13,6 +15,7 @@ interface Room {
 export default function Rooms() {
   const [rooms, setRooms] = useState<Room[]>([])
   const [loading, setLoading] = useState(true)
+  const [bookings, setBookings] = useState<Booking[]>([])
 
   useEffect(() => {
     fetch('/api/rooms')
@@ -20,6 +23,7 @@ export default function Rooms() {
       .then(d => setRooms(Array.isArray(d) ? d : []))
       .catch(() => setRooms([]))
       .finally(() => setLoading(false))
+    listBookings().then(({ bookings }) => setBookings(bookings)).catch(() => setBookings([]))
   }, [])
 
   return (
@@ -57,6 +61,14 @@ export default function Rooms() {
               ))}
             </div>
           )}
+
+          <div className="mt-16 rounded-3xl border border-ocean/10 bg-white p-6 shadow-[0_12px_35px_rgba(8,49,64,.05)]">
+            <h2 className="font-display text-2xl text-ocean">Room Availability</h2>
+            <p className="mt-2 text-sm text-muted">See booked dates (pending/confirmed) on the calendar. Use this to plan your stay.</p>
+            <div className="mt-6">
+              <CalendarView bookings={bookings.filter(b => b.booking_type === 'room' && b.status !== 'cancelled')} />
+            </div>
+          </div>
         </div>
       </section>
       <Footer />

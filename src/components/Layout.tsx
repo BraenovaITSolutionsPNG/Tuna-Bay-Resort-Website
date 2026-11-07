@@ -74,16 +74,6 @@ export function Header({ variant = 'dark' }: { variant?: 'dark' | 'light' }) {
 }
 
 export function Footer() {
-  const navItems = [
-    ['Home', '/'],
-    ['About', '/about'],
-    ['Facilities', '/facilities'],
-    ['Menu', '/menu'],
-    ['Rooms', '/rooms'],
-    ['Gallery', '/gallery'],
-    ['Location', '/#location'],
-    ['Search', '/search'],
-  ]
   return (
     <footer className="bg-[#052633] text-white">
       <div className="page-wrap py-12 sm:py-16">
