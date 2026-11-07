@@ -178,8 +178,30 @@ export default function BlueTunaScene() {
         meshes.forEach((m) => { m.material = mat; group.add(m) })
         group.scale.setScalar(1/len)
         body.add(group)
+        console.info('BlueTuna ready', { meshes: meshes.length, len })
       } catch (e) { console.error('BlueTuna model setup failed', e) }
     }, undefined, (e) => { console.error('BlueTuna model load failed', FISH_GLB, e) })
+
+    // guaranteed-visible fallback (procedural tuna shape) so a fish always shows
+    const fallback = (() => {
+      const g = new THREE.Group()
+      const mat = new THREE.MeshStandardMaterial({ color: 0x33b7ff, emissive: 0x1e90ff, emissiveIntensity: 1.1, metalness: 0.35, roughness: 0.2 })
+      const bodyGeo = new THREE.SphereGeometry(0.5, 28, 20)
+      bodyGeo.scale(1.9, 0.72, 0.42)
+      const torso = new THREE.Mesh(bodyGeo, mat); g.add(torso)
+      const tail = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.62, 20), mat)
+      tail.rotation.z = -Math.PI / 2; tail.position.set(-1.1, 0, 0); g.add(tail)
+      const fin = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.42, 16), mat)
+      fin.position.set(0.05, 0.38, 0); g.add(fin)
+      const belly = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.3, 16), mat)
+      belly.rotation.z = Math.PI; belly.position.set(0.05, -0.32, 0); g.add(belly)
+      g.scale.setScalar(0.85)
+      return g
+    })()
+    body.add(fallback)
+    // hide fallback once real model is added
+    const fallbackWatch = setInterval(() => { if (body.children.length > 1) { body.remove(fallback); clearInterval(fallbackWatch) } }, 200)
+    setTimeout(() => clearInterval(fallbackWatch), 15000)
 
     // scroll poses
     const anchors = () => {
@@ -287,7 +309,7 @@ export default function BlueTunaScene() {
       <div ref={nightRef} className="absolute inset-0 opacity-0" style={{ backgroundImage: `url(${NIGHT_IMAGE})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,rgba(5,38,51,.2),rgba(5,38,51,.55) 55%,rgba(5,38,51,.94))' }} />
       </div>
-      <canvas ref={koiCanvas} className="absolute inset-0 block h-full w-full" />
+      <canvas ref={koiCanvas} className="absolute inset-0 block h-full w-full" style={{ zIndex: 2 }} />
     </div>
   )
 }
