@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js'
 
-const DAY_IMAGE = '/images/tuna-bay-hero.jpg'
+const DAY_IMAGE = '/images/tuna-bay-hero-crisp.jpg'
 const NIGHT_IMAGE = '/images/tuna-bay-waterfront.png'
 // Quaternius "Tuna" (CC0) via bob6664569/open-water; hosted locally to avoid CORS/dependency issues.
 const FISH_GLB = '/models/tuna.glb'
@@ -219,10 +219,12 @@ export default function BlueTunaScene() {
 
   return (
     <div ref={root} className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
-      <div ref={dayRef} className="absolute inset-0 will-change-[opacity]" style={{ backgroundImage: `url(${DAY_IMAGE})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        {/* Tuna Bay atmosphere: warm daylight lift + ocean depth (clean, no distortion) */}
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(120% 90% at 70% 18%, rgba(255,214,140,.18), rgba(255,214,140,0) 55%), linear-gradient(180deg, rgba(6,58,78,.06) 0%, rgba(5,45,64,.22) 52%, rgba(4,34,52,.62) 100%)' }} />
-        <div className="absolute inset-x-0 bottom-0 h-[38%]" style={{ background: 'linear-gradient(180deg, rgba(4,34,52,0), rgba(3,24,38,.68))' }} />
+      <div ref={dayRef} className="absolute inset-0 will-change-[opacity]" style={{ backgroundImage: `url(${DAY_IMAGE})`, backgroundSize: 'cover', backgroundPosition: '62% 45%' }}>
+        {/* Motion-site-inspired hero, Tuna Bay palette: seafoam/sun bloom, soft haze, ocean depth (stable) */}
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(110% 85% at 18% 10%, rgba(142,216,199,.22), rgba(142,216,199,0) 46%), radial-gradient(90% 70% at 76% 8%, rgba(255,198,130,.16), rgba(255,198,130,0) 44%), linear-gradient(180deg, rgba(3,40,58,.02) 0%, rgba(4,44,62,.16) 44%, rgba(4,34,52,.70) 100%)' }} />
+        <div className="absolute inset-x-0 top-0 h-[40%]" style={{ background: 'linear-gradient(180deg, rgba(210,246,255,.10), rgba(210,246,255,0))', mixBlendMode: 'screen' }} />
+        <div className="absolute inset-0 opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,.9) 1px, transparent 1px)', backgroundSize: '3px 3px' }} />
+        <div className="absolute inset-x-0 bottom-0 h-[40%]" style={{ background: 'linear-gradient(180deg, rgba(4,34,52,0), rgba(3,24,38,.76))' }} />
       </div>
       {/* Mid scroll: deep Pacific gradient, no flat purple */}
       <div ref={violetRef} className="absolute inset-0 opacity-0" style={{ background: 'linear-gradient(180deg, #0b4f63 0%, #083140 46%, #052633 100%)' }} />
