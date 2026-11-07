@@ -50,12 +50,12 @@ export default function AdminTestimonials() {
 
       <div className="mt-6">
         {!showForm && (
-          <button onClick={() => setShowForm(true)} className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white hover:bg-teal transition">
+          <button onClick={() => setShowForm(true)} className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white shadow-lg shadow-ocean/20 hover:bg-teal transition">
             Add Testimonial
           </button>
         )}
         {showForm && (
-          <form onSubmit={submit} className="mt-4 grid gap-3 rounded-2xl bg-white p-5 shadow">
+          <form onSubmit={submit} className="mt-4 grid gap-3 glass-panel rounded-2xl p-5">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
               <input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full rounded-xl border border-ocean/20 px-4 py-2 text-sm" required />
@@ -69,7 +69,7 @@ export default function AdminTestimonials() {
               <textarea value={form.text} onChange={e => setForm({ ...form, text: e.target.value })} className="w-full rounded-xl border border-ocean/20 px-4 py-2 text-sm" rows={3} required />
             </div>
             <div className="sm:col-span-2 flex gap-2">
-              <button type="submit" className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white hover:bg-teal transition">Add</button>
+              <button type="submit" className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white shadow-lg shadow-ocean/20 hover:bg-teal transition">Add</button>
               <button type="button" onClick={() => setShowForm(false)} className="rounded-xl border border-ocean/20 px-4 py-2 text-sm font-bold text-ocean">Cancel</button>
             </div>
           </form>
@@ -78,7 +78,7 @@ export default function AdminTestimonials() {
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {items.map(t => (
-          <div key={t.id} className="rounded-2xl bg-white p-5 shadow">
+          <div key={t.id} className="glass-panel rounded-2xl p-5">
             <div className="flex items-center justify-between">
               <p className="font-display text-ocean">{t.name}</p>
               <span className="text-yellow-500">{'★'.repeat(t.rating)}</span>

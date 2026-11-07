@@ -55,12 +55,12 @@ export default function AdminFacilities() {
 
       <div className="mt-6">
         {!showForm && !editing && (
-          <button onClick={() => setShowForm(true)} className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white hover:bg-teal transition">
+          <button onClick={() => setShowForm(true)} className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white shadow-lg shadow-ocean/20 hover:bg-teal transition">
             Add Facility
           </button>
         )}
         {(showForm || editing) && (
-          <form onSubmit={submit} className="mt-4 grid gap-3 rounded-2xl bg-white p-5 shadow sm:grid-cols-2">
+          <form onSubmit={submit} className="mt-4 grid gap-3 glass-panel rounded-2xl p-5 sm:grid-cols-2">
             <div className="sm:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
               <input placeholder="Facility title" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} className="w-full rounded-xl border border-ocean/20 px-4 py-2 text-sm" required />
@@ -81,7 +81,7 @@ export default function AdminFacilities() {
               <textarea placeholder="Facility description" value={form.text} onChange={e => setForm({ ...form, text: e.target.value })} className="w-full rounded-xl border border-ocean/20 px-4 py-2 text-sm" rows={2} />
             </div>
             <div className="sm:col-span-2 flex gap-2">
-              <button type="submit" className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white hover:bg-teal transition">
+              <button type="submit" className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white shadow-lg shadow-ocean/20 hover:bg-teal transition">
                 {editing ? 'Update Facility' : 'Add Facility'}
               </button>
               <button type="button" onClick={() => { setEditing(null); setShowForm(false); setForm({ title: '', text: '', image: '' }) }} className="rounded-xl border border-ocean/20 px-4 py-2 text-sm font-bold text-ocean">
@@ -94,7 +94,7 @@ export default function AdminFacilities() {
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {facilities.map(f => (
-          <div key={f.id} className="rounded-2xl bg-white p-5 shadow">
+          <div key={f.id} className="glass-panel rounded-2xl p-5">
             {f.image && <img src={f.image} alt={f.title} className="h-32 w-full rounded-xl object-cover" />}
             <h3 className="mt-3 font-display text-lg text-ocean">{f.title}</h3>
             <p className="mt-1 text-sm text-muted">{f.text}</p>

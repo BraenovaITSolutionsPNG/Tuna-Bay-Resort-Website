@@ -73,12 +73,12 @@ export default function AdminMenu() {
 
       <div className="mt-6">
         {!showForm && !editing && (
-          <button onClick={() => setShowForm(true)} className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white hover:bg-teal transition">
+          <button onClick={() => setShowForm(true)} className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white shadow-lg shadow-ocean/20 hover:bg-teal transition">
             Add Menu Item
           </button>
         )}
         {(showForm || editing) && (
-          <form onSubmit={submit} className="mt-4 grid gap-3 rounded-2xl bg-white p-5 shadow sm:grid-cols-2">
+          <form onSubmit={submit} className="mt-4 grid gap-3 glass-panel rounded-2xl p-5 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
               <div className="flex gap-2">
@@ -109,7 +109,7 @@ export default function AdminMenu() {
               </button>
             </div>
             <div className="sm:col-span-2 flex gap-2">
-              <button type="submit" className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white hover:bg-teal transition">
+              <button type="submit" className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white shadow-lg shadow-ocean/20 hover:bg-teal transition">
                 {editing ? 'Update Item' : 'Add Item'}
               </button>
               <button type="button" onClick={() => { setEditing(null); setShowForm(false); setForm({ category: 'dining', name: '', description: '', price: '' }) }} className="rounded-xl border border-ocean/20 px-4 py-2 text-sm font-bold text-ocean">
@@ -120,9 +120,9 @@ export default function AdminMenu() {
         )}
       </div>
 
-      <div className="mt-6 overflow-x-auto rounded-2xl bg-white shadow">
+      <div className="mt-6 glass-panel overflow-x-auto rounded-2xl">
         <table className="w-full text-sm">
-          <thead className="bg-ocean text-white">
+          <thead className="bg-ocean/90 text-white backdrop-blur-sm">
             <tr>
               <th className="px-4 py-3 text-left">Category</th>
               <th className="px-4 py-3 text-left">Name</th>

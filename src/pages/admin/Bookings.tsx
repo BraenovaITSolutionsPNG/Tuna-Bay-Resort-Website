@@ -185,12 +185,12 @@ export default function AdminBookings() {
         <button onClick={() => setView('calendar')} className={`rounded-xl px-4 py-2 text-sm font-bold transition ${view === 'calendar' ? 'bg-ocean text-white' : 'bg-white text-ocean border border-ocean/20'}`}>Calendar</button>
       </div>
 
-      {view === 'calendar' && <div className="mt-4 rounded-2xl bg-white p-5 shadow"><CalendarView bookings={filtered} /></div>}
+      {view === 'calendar' && <div className="mt-4 glass-panel rounded-2xl p-5"><CalendarView bookings={filtered} /></div>}
 
       {view === 'table' && (
-        <div className="mt-4 overflow-x-auto rounded-2xl bg-white shadow">
+        <div className="mt-4 glass-panel overflow-x-auto rounded-2xl">
           <table className="w-full min-w-[980px] text-sm">
-            <thead className="bg-ocean text-white">
+            <thead className="bg-ocean/90 text-white backdrop-blur-sm">
               <tr>
                 <th className="px-4 py-3 text-left font-semibold">Reference</th>
                 <th className="px-4 py-3 text-left font-semibold">Guest</th>
@@ -251,7 +251,7 @@ export default function AdminBookings() {
 
       {active && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => !saving && setActive(null)}>
-          <div className="max-h-[90vh] w-full max-w-2xl overflow-auto rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-auto glass-panel rounded-2xl p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="font-mono text-sm font-bold text-ocean">{active.reference}</p>
@@ -350,7 +350,7 @@ function paymentLabel(v?: string | null) {
 }
 function StatCard({ label, value, accent }: { label: string; value: number; accent: string }) {
   return (
-    <div className="rounded-2xl bg-white p-5 shadow">
+    <div className="glass-panel rounded-2xl p-5">
       <p className="text-sm text-muted">{label}</p>
       <p className={`mt-2 font-display text-3xl ${accent}`}>{value}</p>
     </div>

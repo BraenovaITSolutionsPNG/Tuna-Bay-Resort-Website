@@ -125,6 +125,66 @@
       linear-gradient(-22deg, transparent 46%, rgba(8,49,64,.12) 47%, rgba(8,49,64,.12) 49%, transparent 50%);
     background-size: 4rem 3rem, 5rem 4rem;
   }
+
+  .admin-glass-bg {
+    background:
+      radial-gradient(120% 90% at 10% 0%, rgba(142,216,199,.22), rgba(142,216,199,0) 45%),
+      radial-gradient(90% 70% at 90% 10%, rgba(26,134,255,.14), rgba(26,134,255,0) 42%),
+      linear-gradient(180deg, #0b4f63 0%, #083140 48%, #052633 100%);
+    color: #183139;
+  }
+  .glass-panel {
+    background: linear-gradient(180deg, rgba(255,255,255,.62), rgba(255,255,255,.42));
+    border: 1px solid rgba(255,255,255,.55);
+    box-shadow: 0 18px 50px rgba(5,38,51,.18), inset 0 1px 0 rgba(255,255,255,.55);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+  }
+  .glass-panel-dark {
+    background: linear-gradient(180deg, rgba(8,49,64,.38), rgba(8,49,64,.22));
+    border: 1px solid rgba(255,255,255,.18);
+    box-shadow: 0 18px 50px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.12);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    color: #fff;
+  }
+  .glass-sidebar {
+    background: linear-gradient(180deg, rgba(255,255,255,.18), rgba(255,255,255,.10));
+    border-right: 1px solid rgba(255,255,255,.22);
+    box-shadow: 8px 0 40px rgba(5,38,51,.14), inset -1px 0 0 rgba(255,255,255,.08);
+    backdrop-filter: blur(22px) saturate(150%);
+    -webkit-backdrop-filter: blur(22px) saturate(150%);
+  }
+  .glass-nav-item { color: rgba(255,255,255,.78); }
+  .glass-nav-item:hover { background: rgba(255,255,255,.12); color: #fff; }
+  .glass-nav-item-active {
+    background: linear-gradient(90deg, rgba(142,216,199,.28), rgba(255,255,255,.10));
+    border: 1px solid rgba(142,216,199,.28);
+    color: #fff;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+  }
+  .glass-input {
+    width: 100%;
+    border: 1px solid rgba(255,255,255,.55);
+    border-radius: 0.85rem;
+    background: rgba(255,255,255,.55);
+    padding: 0.8rem 1rem;
+    color: var(--color-ink);
+    font-size: 0.875rem;
+    outline: none;
+    backdrop-filter: blur(8px);
+    transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+  }
+  .glass-input:focus {
+    border-color: rgba(142,216,199,.8);
+    box-shadow: 0 0 0 3px rgba(142,216,199,.22);
+    background: rgba(255,255,255,.72);
+  }
+  .glass-input::placeholder { color: color-mix(in srgb, var(--color-muted) 75%, transparent); }
+  .glass-btn { background: rgba(255,255,255,.18); border: 1px solid rgba(255,255,255,.28); color: #fff; backdrop-filter: blur(10px); }
+  .glass-btn:hover { background: rgba(255,255,255,.26); }
+  .admin-glass-bg .text-muted { color: rgba(24,49,57,.72); }
+  .admin-glass-bg .text-ocean { color: #083140; }
 }
 
 @media (min-width: 640px) {

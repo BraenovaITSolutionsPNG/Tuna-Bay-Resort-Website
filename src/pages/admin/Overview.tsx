@@ -51,64 +51,55 @@ export default function AdminOverview() {
 
   const COLORS = ['#083140', '#0ea5a4', '#ff6b5b', '#f59e0b', '#8b5cf6']
 
+  const tooltipStyle = { background: 'rgba(255,255,255,.72)', border: '1px solid rgba(255,255,255,.7)', borderRadius: 12, backdropFilter: 'blur(10px)', color: '#183139' }
   return (
     <div>
-      <h1 className="text-2xl font-bold text-[#052633]">Dashboard</h1>
-      <p className="mt-1 text-muted">Overview of resort activity.</p>
+      <div className="glass-panel rounded-2xl p-5 sm:p-6">
+        <h1 className="font-display text-2xl sm:text-3xl text-ocean">Dashboard</h1>
+        <p className="mt-1 text-sm text-muted">Overview of resort activity.</p>
+      </div>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl bg-white p-5 shadow">
-          <p className="text-sm text-muted">Total Bookings</p>
-          <p className="mt-2 font-display text-3xl text-ocean">{bookings.length}</p>
-        </div>
-        <div className="rounded-2xl bg-white p-5 shadow">
-          <p className="text-sm text-muted">Rooms</p>
-          <p className="mt-2 font-display text-3xl text-ocean">{rooms.length}</p>
-        </div>
-        <div className="rounded-2xl bg-white p-5 shadow">
-          <p className="text-sm text-muted">Facilities</p>
-          <p className="mt-2 font-display text-3xl text-ocean">{facilities.length}</p>
-        </div>
-        <div className="rounded-2xl bg-white p-5 shadow">
-          <p className="text-sm text-muted">Menu Items</p>
-          <p className="mt-2 font-display text-3xl text-ocean">{menu.length}</p>
-        </div>
+        {[['Total Bookings', bookings.length], ['Rooms', rooms.length], ['Facilities', facilities.length], ['Menu Items', menu.length]].map(([label, value]) => (
+          <div key={String(label)} className="glass-panel rounded-2xl p-5">
+            <p className="text-sm font-medium text-muted">{label}</p>
+            <p className="mt-2 font-display text-3xl text-ocean">{value}</p>
+          </div>
+        ))}
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl bg-white p-5 shadow">
+        <div className="glass-panel rounded-2xl p-5">
           <h3 className="font-display text-lg text-ocean mb-4">Bookings by Type</h3>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={bookingsByType}>
-              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Bar dataKey="value" fill="#083140" radius={[6, 6, 0, 0]} />
+              <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#607278' }} axisLine={{ stroke: 'rgba(8,49,64,.15)' }} tickLine={false} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#607278' }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={tooltipStyle} cursor={{ fill: 'rgba(255,255,255,.25)' }} />
+              <Bar dataKey="value" fill="#0c766d" radius={[8, 8, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="rounded-2xl bg-white p-5 shadow">
+        <div className="glass-panel rounded-2xl p-5">
           <h3 className="font-display text-lg text-ocean mb-4">Booking Distribution</h3>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
-              <Pie data={bookingsByType} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                {bookingsByType.map((_, i) => (
-                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                ))}
+              <Pie data={bookingsByType} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={48} outerRadius={82} paddingAngle={3} label>
+                {bookingsByType.map((_, i) => (<Cell key={i} fill={COLORS[i % COLORS.length]} stroke="rgba(255,255,255,.5)" />))}
               </Pie>
-              <Tooltip />
+              <Tooltip contentStyle={tooltipStyle} />
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <div className="rounded-2xl bg-white p-5 shadow lg:col-span-2">
+        <div className="glass-panel rounded-2xl p-5 lg:col-span-2">
           <h3 className="font-display text-lg text-ocean mb-4">Bookings Over Time</h3>
           <ResponsiveContainer width="100%" height={250}>
             <LineChart data={bookingsByDate}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-              <YAxis allowDecimals={false} />
-              <Tooltip />
-              <Line type="monotone" dataKey="count" stroke="#ff6b5b" strokeWidth={2} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(8,49,64,.12)" />
+              <XAxis dataKey="date" tick={{ fontSize: 12, fill: '#607278' }} axisLine={false} tickLine={false} />
+              <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#607278' }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Line type="monotone" dataKey="count" stroke="#e76f51" strokeWidth={2.5} dot={{ fill: '#e76f51', strokeWidth: 0, r: 3 }} activeDot={{ r: 5 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>

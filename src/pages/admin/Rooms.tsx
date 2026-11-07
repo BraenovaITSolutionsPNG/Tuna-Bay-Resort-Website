@@ -57,12 +57,12 @@ export default function AdminRooms() {
 
       <div className="mt-6">
         {!showForm && !editing && (
-          <button onClick={() => setShowForm(true)} className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white hover:bg-teal transition">
+          <button onClick={() => setShowForm(true)} className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white shadow-lg shadow-ocean/20 hover:bg-teal transition">
             Add Room
           </button>
         )}
         {(showForm || editing) && (
-          <form onSubmit={submit} className="mt-4 grid gap-3 rounded-2xl bg-white p-5 shadow sm:grid-cols-2">
+          <form onSubmit={submit} className="mt-4 grid gap-3 glass-panel rounded-2xl p-5 sm:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
               <input placeholder="Room name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full rounded-xl border border-ocean/20 px-4 py-2 text-sm" required />
@@ -91,7 +91,7 @@ export default function AdminRooms() {
               <input placeholder="Queen Bed, WiFi, ..." value={form.features} onChange={e => setForm({ ...form, features: e.target.value })} className="w-full rounded-xl border border-ocean/20 px-4 py-2 text-sm" />
             </div>
             <div className="sm:col-span-2 flex gap-2">
-              <button type="submit" className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white hover:bg-teal transition">
+              <button type="submit" className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white shadow-lg shadow-ocean/20 hover:bg-teal transition">
                 {editing ? 'Update Room' : 'Add Room'}
               </button>
               <button type="button" onClick={() => { setEditing(null); setShowForm(false); setForm({ name: '', description: '', price: '', features: '', image: '' }) }} className="rounded-xl border border-ocean/20 px-4 py-2 text-sm font-bold text-ocean">
@@ -104,7 +104,7 @@ export default function AdminRooms() {
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {rooms.map(r => (
-          <div key={r.id} className="rounded-2xl bg-white p-5 shadow">
+          <div key={r.id} className="glass-panel rounded-2xl p-5">
             {r.image && <img src={r.image} alt={r.name} className="h-32 w-full rounded-xl object-cover" />}
             <h3 className="mt-3 font-display text-lg text-ocean">{r.name}</h3>
             <p className="mt-1 text-sm text-muted">{r.description}</p>

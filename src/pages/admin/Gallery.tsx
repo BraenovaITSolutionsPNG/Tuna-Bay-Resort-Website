@@ -48,7 +48,7 @@ export default function AdminGallery() {
       <h1 className="text-2xl font-bold text-[#052633]">Gallery</h1>
       <p className="mt-1 text-muted">Manage gallery images.</p>
 
-      <form onSubmit={addImage} className="mt-6 flex flex-wrap gap-3 rounded-2xl bg-white p-5 shadow">
+      <form onSubmit={addImage} className="mt-6 flex flex-wrap gap-3 glass-panel rounded-2xl p-5">
         <div className="w-full">
           <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
           <input type="file" accept="image/*" onChange={e => {
@@ -73,14 +73,14 @@ export default function AdminGallery() {
           onChange={e => setAlt(e.target.value)}
           className="rounded-xl border border-ocean/20 px-4 py-2 text-sm"
         />
-        <button type="submit" className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white hover:bg-teal transition">
+        <button type="submit" className="rounded-xl bg-ocean px-4 py-2 text-sm font-bold text-white shadow-lg shadow-ocean/20 hover:bg-teal transition">
           Add Image
         </button>
       </form>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {images.map(img => (
-          <div key={img.id} className="group relative overflow-hidden rounded-2xl bg-white shadow">
+          <div key={img.id} className="glass-panel group relative overflow-hidden rounded-2xl">
             <img src={img.src} alt={img.alt || ''} className="h-48 w-full object-cover" />
             <div className="p-4">
               <p className="font-display text-sm text-ocean">{img.title || 'Untitled'}</p>
