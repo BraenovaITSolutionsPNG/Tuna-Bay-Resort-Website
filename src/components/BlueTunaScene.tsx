@@ -97,21 +97,20 @@ export default function BlueTunaScene() {
         rootObj.updateMatrixWorld(true)
         tune(rootObj)
 
-        // normalize: longest axis -> +X (nose direction for swim feel), center, scale to length 1
-        const box0 = new THREE.Box3().setFromObject(rootObj)
-        const size0 = box0.getSize(new THREE.Vector3())
-        let longest = 'x'
-        if (size0.z >= size0.x && size0.z >= size0.y) longest = 'z'
-        if (size0.y >= size0.x && size0.y >= size0.z) longest = 'y'
+        // normalize: center and scale to length 1, oriented for a natural side-swim
         const wrap = new THREE.Group()
         wrap.add(rootObj)
-        if (longest === 'z') wrap.rotation.y = Math.PI / 2
-        if (longest === 'y') wrap.rotation.z = -Math.PI / 2
-        wrap.rotation.y += Math.PI // face +X
+        wrap.updateMatrixWorld(true)
+        const box0 = new THREE.Box3().setFromObject(wrap)
+        const c0 = box0.getCenter(new THREE.Vector3())
+        wrap.position.sub(c0)
+        wrap.updateMatrixWorld(true)
+        // orient: this tuna model's length runs along its body; rotate to swim along +X
+        wrap.rotation.y = Math.PI * 0.5
         wrap.updateMatrixWorld(true)
         const box = new THREE.Box3().setFromObject(wrap)
-        const c = box.getCenter(new THREE.Vector3())
         const len = Math.max(...box.getSize(new THREE.Vector3()).toArray()) || 1
+        const c = box.getCenter(new THREE.Vector3())
         wrap.position.sub(c)
         wrap.scale.setScalar(1 / len)
         body.add(wrap)
@@ -142,25 +141,30 @@ export default function BlueTunaScene() {
     const fallbackWatch = setInterval(() => { if (body.children.length > 1) { body.remove(fallback); clearInterval(fallbackWatch) } }, 200)
     setTimeout(() => clearInterval(fallbackWatch), 15000)
 
-    // scroll choreography (Nectarline-style poses in half-viewport units)
+    // controlled swim path: calm, clearly positioned (not erratic)
     const anchors = () => {
       const h = window.innerHeight
       const top = (sel: string) => { const el = document.querySelector(sel) as HTMLElement | null; return el ? el.getBoundingClientRect().top + window.scrollY : h }
       const end = document.querySelector('#tuna-end') as HTMLElement | null
       const maxS = Math.max(0, document.documentElement.scrollHeight - h)
       const phone = window.innerWidth <= 820
-      const P = (x:number,y:number,s:number,yaw:number,pitch:number,roll:number, xp:number,yp:number,sp:number): Omit<Pose,'at'> =>
-        phone ? {x:xp,y:yp,s:sp,yaw,pitch,roll} : {x,y,s,yaw,pitch,roll}
+      // x/y: viewport-normalized (-1..1), s: fish length vs viewport height, yaw: gentle heading
+      if (phone) return [
+        { at: 0, x: 0.18, y: 0.42, s: 0.34, yaw: 2.9, pitch: 0.02, roll: 0 },
+        { at: top('#tuna-about') + 0.15 * h, x: -0.1, y: -0.55, s: 0.26, yaw: 0.2, pitch: 0.02, roll: 0 },
+        { at: top('#tuna-features') + 0.15 * h, x: 0.12, y: -0.58, s: 0.26, yaw: 2.95, pitch: 0.02, roll: 0 },
+        { at: Math.min(end ? end.offsetTop : maxS, maxS), x: 0.0, y: -0.5, s: 0.24, yaw: 2.9, pitch: 0.02, roll: 0 },
+      ] as Pose[]
       return [
-        { at: 0, ...P(0.02, 0.16, 0.72, 0.18, -0.92, 0.05, 0.12, 0.38, 0.46) },
-        { at: top('#tuna-about') + 0.2*h, ...P(-0.66, -0.58, 0.42, 0.5, 0.2, -0.1, 0.42, -0.72, 0.3) },
-        { at: top('#tuna-features') + 0.2*h, ...P(0.5, -0.5, 0.46, -0.35, 0.32, 0.1, -0.35, -0.74, 0.3) },
-        { at: top('#tuna-experience') + 0.3*h, ...P(-0.42, -0.42, 0.6, 3.0, 0.12, -0.06, -0.3, -0.76, 0.32) },
-        { at: Math.min(end ? end.offsetTop : maxS, maxS), ...P(-0.7, 0.56, 0.48, 0.3, -0.14, 0.05, 0.3, -0.74, 0.32) },
+        { at: 0, x: 0.52, y: 0.22, s: 0.42, yaw: 2.95, pitch: 0.04, roll: 0.02 },
+        { at: top('#tuna-about') + 0.2 * h, x: -0.48, y: -0.38, s: 0.34, yaw: 0.18, pitch: 0.03, roll: -0.02 },
+        { at: top('#tuna-features') + 0.2 * h, x: 0.46, y: -0.42, s: 0.34, yaw: 2.96, pitch: 0.03, roll: 0.02 },
+        { at: top('#tuna-experience') + 0.2 * h, x: -0.44, y: -0.36, s: 0.32, yaw: 0.18, pitch: 0.03, roll: -0.02 },
+        { at: Math.min(end ? end.offsetTop : maxS, maxS), x: 0.0, y: 0.48, s: 0.3, yaw: 2.95, pitch: 0.02, roll: 0 },
       ] as Pose[]
     }
     let poses = anchors()
-    let cur: Omit<Pose,'at'> = { x: 0.02, y: 0.16, s: 0.72, yaw: 0.18, pitch: -0.92, roll: 0.05 }
+    let cur: Omit<Pose,'at'> = { ...poses[0] }
     let lastY = window.scrollY, vel = 0, elapsed = 0
 
     const resize = () => {
@@ -190,26 +194,25 @@ export default function BlueTunaScene() {
 
       // (ripple lens removed — hero image renders cleanly via CSS background)
 
-      // tuna motion (ease to pose, idle bob, faster swim on scroll, pointer tilt)
+      // tuna motion: calm, eased path (no camera/erratic tilt)
       const inst = (y - lastY) / Math.max(dt, 0.001); lastY = y; vel += (inst - vel) * 0.1
-      const speedUp = Math.min(Math.abs(vel) / 1800, 1.4)
+      const speedUp = Math.min(Math.abs(vel) / 1800, 1.2)
       if (mixer && !reduce) mixer.update(dt * (1 + speedUp))
+      poses = anchors() // keep anchors fresh to section layout
       let target = poses[0]
       for (let i = 0; i < poses.length - 1; i++) {
         const a = poses[i], b = poses[i + 1]
         if (y >= a.at && y <= b.at) { const tt = easeInOut((y - a.at) / (b.at - a.at || 1)); target = { at: y, x: lerp(a.x,b.x,tt), y: lerp(a.y,b.y,tt), s: lerp(a.s,b.s,tt), yaw: lerp(a.yaw,b.yaw,tt), pitch: lerp(a.pitch,b.pitch,tt), roll: lerp(a.roll,b.roll,tt) } as any; break }
         if (y > b.at) target = b
       }
-      const k = reduce ? 1 : 1 - Math.exp(-3.2 * dt)
+      const k = reduce ? 1 : 1 - Math.exp(-2.4 * dt)
       ;(['x','y','s','yaw','pitch','roll'] as const).forEach((n) => { (cur as any)[n] += (((target as any)[n] || 0) - (cur as any)[n]) * k })
-      const bob = reduce ? 0 : Math.sin(0.9 * elapsed) * 0.018
+      const bob = reduce ? 0 : Math.sin(0.8 * elapsed) * 0.012
+      const drift = reduce ? 0 : Math.sin(0.35 * elapsed) * 0.015
       const { fw, fh } = frustum()
-      rig.position.set(cur.x * fw / 2, (cur.y + bob) * fh / 2, 0)
-      rig.rotation.set(cur.roll + (reduce ? 0 : Math.sin(0.7 * elapsed) * 0.04), cur.yaw + (reduce ? 0 : Math.sin(0.5 * elapsed) * 0.06), cur.pitch, 'XYZ')
+      rig.position.set((cur.x + drift) * fw / 2, (cur.y + bob) * fh / 2, 0)
+      rig.rotation.set(cur.roll, cur.yaw + (reduce ? 0 : Math.sin(0.5 * elapsed) * 0.03), cur.pitch, 'XYZ')
       body.scale.setScalar(cur.s * fh)
-      const camK = 1 - Math.exp(-dt / 0.1)
-      camera.rotation.y += (-ptr.tx * 0.01745 - camera.rotation.y) * camK
-      camera.rotation.x += (ptr.ty * 0.01745 - camera.rotation.x) * camK
       renderer.render(scene, camera)
 
       raf = requestAnimationFrame(tick)
