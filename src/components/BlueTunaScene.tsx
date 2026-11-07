@@ -116,9 +116,10 @@ export default function BlueTunaScene() {
     const scene = new THREE.Scene()
     const pmrem = new THREE.PMREMGenerator(renderer)
     scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    scene.add(new THREE.HemisphereLight(0xbfdcff, 0x10304a, 0.85))
-    const key = new THREE.DirectionalLight(0xe8f6ff, 1.4); key.position.set(3,5,6); scene.add(key)
-    const rim = new THREE.DirectionalLight(0x2aa8ff, 2.4); rim.position.set(-5,-1,-4); scene.add(rim)
+    scene.add(new THREE.HemisphereLight(0xdff3ff, 0x10304a, 1.0))
+    const key = new THREE.DirectionalLight(0xffffff, 1.8); key.position.set(3,5,6); scene.add(key)
+    const rim = new THREE.DirectionalLight(0x4fc3ff, 3.2); rim.position.set(-5,-1,-4); scene.add(rim)
+    const fill = new THREE.PointLight(0x66bfff, 18, 30); fill.position.set(0,0,4); scene.add(fill)
     const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100)
     camera.position.set(0,0,10); camera.lookAt(0,0,0)
 
@@ -152,12 +153,13 @@ export default function BlueTunaScene() {
         const group = new THREE.Group()
         swimUniforms = { time: { value: 0 }, speed: { value: 6.2 }, amp: { value: 0.075 }, freq: { value: 5.0 } }
         const mat = new THREE.MeshPhysicalMaterial({
-          color: 0x1565c0, roughness: 0.18, metalness: 0.35,
-          clearcoat: 1, clearcoatRoughness: 0.08,
-          iridescence: 0.35, iridescenceIOR: 1.33, iridescenceThicknessRange: [160, 460],
-          emissive: 0x0b5fd6, emissiveIntensity: 0.55,
-          sheen: 0.5, sheenColor: new THREE.Color(0xd6f1ff),
-          transparent: true, opacity: 0.99, envMapIntensity: 1.1, side: THREE.DoubleSide,
+          color: 0x2ea8ff, roughness: 0.12, metalness: 0.45,
+          clearcoat: 1, clearcoatRoughness: 0.04,
+          iridescence: 0.18, iridescenceIOR: 1.28,
+          iridescenceThicknessRange: [120, 380] as any,
+          emissive: 0x4fc3ff, emissiveIntensity: 1.35,
+          sheen: 0.6, sheenColor: new THREE.Color(0xffffff),
+          transparent: false, opacity: 1, envMapIntensity: 1.4, side: THREE.DoubleSide,
         })
         mat.onBeforeCompile = (shader) => {
           shader.uniforms.uTime = swimUniforms!.time
@@ -189,15 +191,15 @@ export default function BlueTunaScene() {
       const P = (x:number,y:number,s:number,yaw:number,pitch:number,roll:number, xp:number,yp:number,sp:number): Omit<Pose,'at'> =>
         phone ? {x:xp,y:yp,s:sp,yaw,pitch,roll} : {x,y,s,yaw,pitch,roll}
       return [
-        { at: 0, ...P(0.04,0.18,0.62,0.18,-0.82,0.05, 0.1,0.34,0.4) },
-        { at: top('#tuna-about') + 0.15*h, ...P(-0.62,-0.55,0.38,0.55,0.18,-0.1, 0.38,-0.68,0.28) },
-        { at: top('#tuna-features') + 0.2*h, ...P(0.55,-0.5,0.42,-0.4,0.28,0.1, -0.32,-0.68,0.28) },
-        { at: top('#tuna-experience') + 0.2*h, ...P(-0.45,-0.55,0.44,2.9,0.1,-0.06, 0.32,-0.7,0.28) },
-        { at: Math.min(end ? end.offsetTop : maxS, maxS), ...P(-0.66,0.52,0.42,0.3,-0.12,0.05, 0.26,-0.68,0.28) },
+        { at: 0, ...P(0.52,0.22,1.35,0.25,-0.55,0.04, 0.18,0.32,0.85) },
+        { at: top('#tuna-about') + 0.15*h, ...P(-0.48,-0.35,0.95,0.55,0.14,-0.08, 0.3,-0.48,0.62) },
+        { at: top('#tuna-features') + 0.2*h, ...P(0.44,-0.32,1.0,-0.4,0.22,0.08, -0.24,-0.48,0.64) },
+        { at: top('#tuna-experience') + 0.2*h, ...P(-0.34,-0.36,1.02,2.9,0.1,-0.05, 0.24,-0.5,0.66) },
+        { at: Math.min(end ? end.offsetTop : maxS, maxS), ...P(-0.5,0.34,0.95,0.3,-0.1,0.04, 0.18,-0.48,0.64) },
       ] as Pose[]
     }
     let poses = anchors()
-    let cur: Omit<Pose,'at'> = {x:0.04,y:0.18,s:0.62,yaw:0.18,pitch:-0.82,roll:0.05}
+    let cur: Omit<Pose,'at'> = {x:0.52,y:0.22,s:1.35,yaw:0.25,pitch:-0.55,roll:0.04}
     let lastY = window.scrollY, vel = 0, elapsed = 0
 
     const resize = () => {
