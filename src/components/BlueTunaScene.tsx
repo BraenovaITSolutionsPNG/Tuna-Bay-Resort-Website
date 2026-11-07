@@ -129,56 +129,39 @@ export default function BlueTunaScene() {
     new GLTFLoader().load(FISH_GLB, (gltf) => {
       if (dead) return
       try {
-        const rootObj = gltf.scene
-        rootObj.updateMatrixWorld(true)
-        const meshes: THREE.Mesh[] = []
-        rootObj.traverse((o) => { if ((o as THREE.Mesh).isMesh) meshes.push(o as THREE.Mesh) })
-        if (!meshes.length) throw new Error('no meshes')
-        meshes.forEach((m) => { m.geometry = m.geometry.clone(); m.geometry.applyMatrix4(m.matrixWorld); m.geometry.computeVertexNormals() })
-        const box = new THREE.Box3()
-        meshes.forEach((m) => box.expandByObject(m))
-        const size = box.getSize(new THREE.Vector3())
+        const rootObj = gltf.scene.clone(true)
+        // orient/center
+        const box0 = new THREE.Box3().setFromObject(rootObj)
+        const size0 = box0.getSize(new THREE.Vector3())
         let longest = 'x'
-        if (size.z >= size.x && size.z >= size.y) longest = 'z'
-        if (size.y >= size.x && size.y >= size.z) longest = 'y'
-        const rot = new THREE.Matrix4()
-        if (longest === 'z') rot.makeRotationY(Math.PI / 2)
-        if (longest === 'y') rot.makeRotationZ(-Math.PI / 2)
-        rot.multiply(new THREE.Matrix4().makeRotationY(Math.PI)) // nose +X
-        meshes.forEach((m) => { m.geometry.applyMatrix4(rot); m.geometry.computeVertexNormals() })
-        const box2 = new THREE.Box3(); meshes.forEach((m) => box2.expandByObject(m))
-        const c = box2.getCenter(new THREE.Vector3()); const s2 = box2.getSize(new THREE.Vector3())
-        const len = Math.max(s2.x,s2.y,s2.z) || 1
-        meshes.forEach((m) => { m.geometry.translate(-c.x,-c.y,-c.z); m.geometry.computeVertexNormals() })
-        const group = new THREE.Group()
-        swimUniforms = { time: { value: 0 }, speed: { value: 6.2 }, amp: { value: 0.075 }, freq: { value: 5.0 } }
-        const mat = new THREE.MeshPhysicalMaterial({
-          color: 0x2ea8ff, roughness: 0.12, metalness: 0.45,
-          clearcoat: 1, clearcoatRoughness: 0.04,
-          iridescence: 0.18, iridescenceIOR: 1.28,
-          iridescenceThicknessRange: [120, 380] as any,
-          emissive: 0x4fc3ff, emissiveIntensity: 1.35,
-          sheen: 0.6, sheenColor: new THREE.Color(0xffffff),
-          transparent: false, opacity: 1, envMapIntensity: 1.4, side: THREE.DoubleSide,
+        if (size0.z >= size0.x && size0.z >= size0.y) longest = 'z'
+        if (size0.y >= size0.x && size0.y >= size0.z) longest = 'y'
+        const wrap = new THREE.Group()
+        wrap.add(rootObj)
+        if (longest === 'z') wrap.rotation.y = Math.PI / 2
+        if (longest === 'y') wrap.rotation.y = -Math.PI / 2
+        wrap.rotation.y += Math.PI
+        wrap.updateMatrixWorld(true)
+        const box = new THREE.Box3().setFromObject(wrap)
+        const c = box.getCenter(new THREE.Vector3())
+        const len = Math.max(...box.getSize(new THREE.Vector3()).toArray()) || 1
+        wrap.position.sub(c)
+        wrap.scale.setScalar(1 / len)
+
+        const mat = new THREE.MeshStandardMaterial({
+          color: 0x1f8fff, emissive: 0x1a7cff, emissiveIntensity: 1.8,
+          metalness: 0.35, roughness: 0.22, side: THREE.DoubleSide,
         })
-        mat.onBeforeCompile = (shader) => {
-          shader.uniforms.uTime = swimUniforms!.time
-          shader.uniforms.uSpeed = swimUniforms!.speed
-          shader.uniforms.uAmp = swimUniforms!.amp
-          shader.uniforms.uFreq = swimUniforms!.freq
-          shader.vertexShader = `uniform float uTime,uSpeed,uAmp,uFreq;\n` + shader.vertexShader
-          shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `
-            vec3 transformed = vec3(position);
-            float tail = clamp((0.32 - transformed.x) / 0.82, 0.0, 1.0);
-            float w = sin(transformed.x * uFreq - uTime * uSpeed);
-            transformed.z += w * uAmp * (0.15 + 1.6 * tail * tail);
-            transformed.y += cos(transformed.x * uFreq * 0.5 - uTime * uSpeed * 0.5) * uAmp * 0.12 * tail;
-          `)
-        }
-        meshes.forEach((m) => { m.material = mat; group.add(m) })
-        group.scale.setScalar(1/len)
-        body.add(group)
-        console.info('BlueTuna ready', { meshes: meshes.length, len })
+        let meshCount = 0
+        rootObj.traverse((o) => {
+          const m = o as THREE.Mesh
+          if (!m.isMesh) return
+          meshCount++
+          m.material = mat
+          m.frustumCulled = false
+        })
+        body.add(wrap)
+        console.info('BlueTuna ready', { meshes: meshCount, len })
       } catch (e) { console.error('BlueTuna model setup failed', e) }
     }, undefined, (e) => { console.error('BlueTuna model load failed', FISH_GLB, e) })
 
@@ -269,7 +252,7 @@ export default function BlueTunaScene() {
       // tuna
       const inst = (y-lastY)/Math.max(dt,0.001); lastY=y; vel += (inst-vel)*0.1
       const speedUp = Math.min(Math.abs(vel)/1800, 1.3)
-      if (swimUniforms && !reduce) { swimUniforms.time.value += dt*(1+speedUp); swimUniforms.amp.value = 0.07+0.03*speedUp }
+      if (swimUniforms && !reduce) { (swimUniforms as any).time.value += dt*(1+speedUp); (swimUniforms as any).amp.value = 0.07+0.03*speedUp }
       let target = poses[0]
       for (let i=0;i<poses.length-1;i++) {
         const a=poses[i], b=poses[i+1]

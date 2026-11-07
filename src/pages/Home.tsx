@@ -54,6 +54,35 @@ export default function Home() {
       <Header variant="dark" />
       <div className="relative z-[3]">
       <section id="tuna-hero" className="relative min-h-[100svh] text-white overflow-hidden">
+        <div className="pointer-events-none absolute right-[4%] top-[14%] z-[6] w-[min(42vw,520px)] opacity-95 sm:right-[6%] sm:top-[12%]">
+          <div className="animate-[tuna-swim_8s_ease-in-out_infinite]">
+            <svg viewBox="0 0 640 260" className="h-auto w-full drop-shadow-[0_18px_40px_rgba(10,80,180,.55)]" aria-hidden="true">
+              <defs>
+                <linearGradient id="tunaBody" x1="0" x2="1">
+                  <stop offset="0" stopColor="#0b4fa8" />
+                  <stop offset="0.45" stopColor="#1f8fff" />
+                  <stop offset="1" stopColor="#5fd0ff" />
+                </linearGradient>
+                <linearGradient id="tunaBelly" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor="#dff6ff" stopOpacity="0.9" />
+                  <stop offset="1" stopColor="#7fd6ff" stopOpacity="0.35" />
+                </linearGradient>
+              </defs>
+              <g transform="translate(10,10)">
+                <path d="M70 125 C20 92, 15 160, 70 125 Z" fill="#0f63c7" />
+                <path d="M95 118 C130 35, 245 15, 360 48 C470 80, 540 102, 585 125 C540 148, 470 170, 360 202 C245 235, 130 215, 95 132 Z" fill="url(#tunaBody)" />
+                <path d="M150 140 C235 190, 360 190, 520 132 C430 172, 250 210, 150 140 Z" fill="url(#tunaBelly)" />
+                <path d="M290 64 L330 12 L360 70 Z" fill="#1572d8" />
+                <path d="M300 184 L342 238 L370 178 Z" fill="#1572d8" />
+                <path d="M205 150 L252 198 L268 146 Z" fill="#1265c4" opacity="0.95" />
+                <path d="M455 128 L505 112 L505 144 Z" fill="#0b4fa8" opacity="0.55" />
+                <circle cx="470" cy="108" r="9" fill="#062a52" />
+                <circle cx="473" cy="105" r="3" fill="#ffffff" />
+                <path d="M520 124 C548 122, 560 126, 585 125" stroke="#083f85" strokeWidth="5" fill="none" strokeLinecap="round" />
+              </g>
+            </svg>
+          </div>
+        </div>
         <div className="relative z-10 flex flex-col justify-end sm:justify-center min-h-[100svh] page-wrap pb-10 sm:pb-8 pt-24 sm:pt-36">
           <div className="max-w-3xl">
             <div className="mb-3 sm:mb-6">

@@ -15,9 +15,11 @@
   --color-muted: #607278;
 }
 
-@keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+@keyframes tuna-swim {
+  0%, 100% { transform: translateY(0) translateX(0) rotate(-1deg); }
+  25% { transform: translateY(-10px) translateX(-6px) rotate(1deg); }
+  50% { transform: translateY(4px) translateX(4px) rotate(-0.5deg); }
+  75% { transform: translateY(-8px) translateX(-3px) rotate(0.8deg); }
 }
 
 .marquee-track {
