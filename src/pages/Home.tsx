@@ -7,7 +7,7 @@ import EnquiryForm from '../components/EnquiryForm'
 import BlueTunaScene from '../components/BlueTunaScene'
 
 const heroImage = '/images/tuna-bay-hero.jpg'
-const aboutImage = '/images/tuna-bay-waterfront.png'
+const aboutImage = '/images/tuna-bay-hero.jpg'
 
 interface Testimonial {
   id: number
