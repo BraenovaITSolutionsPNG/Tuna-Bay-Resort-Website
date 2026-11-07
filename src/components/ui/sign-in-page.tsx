@@ -38,13 +38,15 @@ export function LoginPage({ role }: LoginPageProps = {}) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, password: formData.password }),
       })
-      const data = await res.json()
+      const text = await res.text()
+      let data: any = {}
+      try { data = text ? JSON.parse(text) : {} } catch { throw new Error(`Server error (${res.status}). API may be unavailable on this deployment.`) }
       if (!res.ok) throw new Error(data.error || 'Login failed')
       localStorage.setItem('token', data.token)
       localStorage.setItem('user', JSON.stringify(data.user))
-      const role = data.user?.role || (isAdmin ? 'admin' : isStaff ? 'staff' : 'user')
-      if (role === 'admin') navigate('/admin')
-      else if (role === 'staff') navigate('/staff')
+      const r = data.user?.role || (isAdmin ? 'admin' : isStaff ? 'staff' : 'user')
+      if (r === 'admin') navigate('/admin')
+      else if (r === 'staff') navigate('/staff')
       else navigate('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed')
