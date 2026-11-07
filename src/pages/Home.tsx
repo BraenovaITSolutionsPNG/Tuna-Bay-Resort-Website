@@ -54,6 +54,29 @@ export default function Home() {
       <Header variant="dark" />
       <div className="relative z-10">
       <section id="tuna-hero" className="relative min-h-[100svh] text-white overflow-hidden">
+        {/* Coral (upper hero) — tuna swims over to "eat" here */}
+        <div className="pointer-events-none absolute right-[3%] top-[4%] z-[6] w-[220px] opacity-95 sm:right-[6%] sm:top-[5%] sm:w-[320px] lg:w-[380px]">
+          <svg viewBox="0 0 360 240" className="h-auto w-full drop-shadow-[0_18px_40px_rgba(0,40,60,.35)]" aria-hidden="true">
+            <defs>
+              <linearGradient id="coralA" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor="#cf5b40"/><stop offset="1" stopColor="#ff9b73"/></linearGradient>
+              <linearGradient id="coralB" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor="#0c766d"/><stop offset="1" stopColor="#8ed8c7"/></linearGradient>
+              <linearGradient id="coralC" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stopColor="#b85c7a"/><stop offset="1" stopColor="#f2a7c3"/></linearGradient>
+            </defs>
+            <g opacity="0.98">
+              <ellipse cx="180" cy="214" rx="150" ry="18" fill="#052633" opacity="0.35"/>
+              <path d="M150 210c-8-38 2-72 18-104 10 30 10 62 6 104z" fill="url(#coralA)"/>
+              <path d="M168 210c-4-52 18-90 44-132 0 46-6 88-20 132z" fill="url(#coralC)"/>
+              <path d="M190 210c6-44 24-76 54-108-6 40-20 74-30 108z" fill="url(#coralA)"/>
+              <path d="M120 210c-2-30 10-52 26-74 2 26-2 48-8 74z" fill="url(#coralB)"/>
+              <path d="M228 210c4-34 20-58 40-82-2 30-10 56-18 82z" fill="url(#coralB)"/>
+              <path d="M92 210c2-22 12-40 24-56 0 20-6 38-10 56z" fill="url(#coralC)" opacity="0.9"/>
+              <path d="M262 210c0-20 10-38 22-54-2 20-6 38-10 54z" fill="url(#coralA)" opacity="0.9"/>
+              <g fill="#ffffff" opacity="0.55">
+                <circle cx="156" cy="156" r="3"/><circle cx="190" cy="138" r="3"/><circle cx="214" cy="160" r="3"/><circle cx="132" cy="176" r="2.5"/><circle cx="244" cy="176" r="2.5"/>
+              </g>
+            </g>
+          </svg>
+        </div>
         <div className="relative z-10 flex flex-col justify-end sm:justify-center min-h-[100svh] page-wrap pb-10 sm:pb-8 pt-24 sm:pt-36">
           <div className="max-w-3xl">
             <div className="mb-3 sm:mb-6">

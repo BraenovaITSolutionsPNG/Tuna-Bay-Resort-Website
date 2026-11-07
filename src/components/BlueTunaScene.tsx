@@ -121,19 +121,22 @@ export default function BlueTunaScene() {
         wrap.scale.setScalar(1 / len)
         body.add(wrap)
 
-        const clip = gltf.animations.find((a) => /Swimming_Normal/i.test(a.name)) || gltf.animations.find((a) => /swim/i.test(a.name)) || gltf.animations[0]
-        if (clip) {
+        if (gltf.animations?.length) {
           mixer = new THREE.AnimationMixer(rootObj)
-          mixer.clipAction(clip).play()
+          for (const a of gltf.animations) actions[a.name] = mixer.clipAction(a)
+          const swim = actions['Fish_Armature|Swimming_Normal'] || Object.values(actions)[0]
+          const eat = actions['Fish_Armature|Attack'] || swim
+          if (swim) { swim.play(); activeClip = swim.getClip().name }
+          if (eat && eat !== swim) { eat.play(); eat.setEffectiveWeight(0) }
         }
         body.visible = true
-        console.info('BlueTuna ready', { clip: clip?.name, len, animations: gltf.animations?.length || 0 })
+        console.info('BlueTuna ready', { clip: activeClip, animations: gltf.animations?.length || 0 })
       } catch (e) { console.error('BlueTuna model setup failed', e) }
     }, undefined, (e) => { console.error('BlueTuna model load failed', FISH_GLB, e) })
 
     // (procedural fallback removed — GLB loads locally; avoids double/orientation artifacts)
 
-    // controlled swim path: calm, clearly positioned (nose +X; yaw 0=right, PI=left)
+    // hero: tuna near coral (upper area) using "Attack" as a nibble; then swims down the page
     const anchors = (): Pose[] => {
       const h = window.innerHeight
       const top = (sel: string) => { const el = document.querySelector(sel) as HTMLElement | null; return el ? el.getBoundingClientRect().top + window.scrollY : h }
@@ -142,21 +145,23 @@ export default function BlueTunaScene() {
       const endAt = Math.min(end ? end.offsetTop : maxS, maxS)
       const phone = window.innerWidth <= 820
       if (phone) return [
-        { at: 0, x: 0.22, y: 0.46, s: 0.30, yaw: Math.PI, pitch: 0, roll: 0 },              // hero: upper right, facing left
-        { at: top('#tuna-about') + 0.1 * h, x: -0.15, y: -0.42, s: 0.22, yaw: 0.12, pitch: 0, roll: 0 },
-        { at: top('#tuna-features') + 0.1 * h, x: 0.18, y: -0.46, s: 0.22, yaw: Math.PI - 0.12, pitch: 0, roll: 0 },
-        { at: endAt, x: 0, y: -0.38, s: 0.20, yaw: Math.PI, pitch: 0, roll: 0 },
+        { at: 0, x: 0.46, y: 0.62, s: 0.28, yaw: Math.PI - 0.08, pitch: 0.02, roll: 0 },     // near coral, top-right
+        { at: top('#tuna-about') + 0.1 * h, x: -0.12, y: -0.38, s: 0.22, yaw: 0.12, pitch: 0, roll: 0 },
+        { at: top('#tuna-features') + 0.1 * h, x: 0.16, y: -0.44, s: 0.22, yaw: Math.PI - 0.12, pitch: 0, roll: 0 },
+        { at: endAt, x: 0, y: -0.36, s: 0.20, yaw: Math.PI, pitch: 0, roll: 0 },
       ]
       return [
-        { at: 0, x: 0.58, y: 0.18, s: 0.38, yaw: Math.PI - 0.15, pitch: 0.03, roll: 0 },     // hero: right side, clear of left text
-        { at: top('#tuna-about') + 0.2 * h, x: -0.52, y: -0.30, s: 0.28, yaw: 0.15, pitch: 0.02, roll: 0 },
-        { at: top('#tuna-features') + 0.15 * h, x: 0.50, y: -0.34, s: 0.28, yaw: Math.PI - 0.15, pitch: 0.02, roll: 0 },
-        { at: top('#tuna-experience') + 0.15 * h, x: -0.48, y: -0.28, s: 0.26, yaw: 0.15, pitch: 0.02, roll: 0 },
-        { at: endAt, x: 0.0, y: 0.42, s: 0.26, yaw: Math.PI - 0.12, pitch: 0, roll: 0 },
+        { at: 0, x: 0.62, y: 0.50, s: 0.34, yaw: Math.PI - 0.10, pitch: 0.04, roll: 0 },     // hero: eating near coral top-right
+        { at: top('#tuna-about') + 0.2 * h, x: -0.52, y: -0.28, s: 0.27, yaw: 0.15, pitch: 0.02, roll: 0 },
+        { at: top('#tuna-features') + 0.15 * h, x: 0.50, y: -0.32, s: 0.27, yaw: Math.PI - 0.15, pitch: 0.02, roll: 0 },
+        { at: top('#tuna-experience') + 0.15 * h, x: -0.48, y: -0.26, s: 0.25, yaw: 0.15, pitch: 0.02, roll: 0 },
+        { at: endAt, x: 0.0, y: 0.42, s: 0.25, yaw: Math.PI - 0.12, pitch: 0, roll: 0 },
       ]
     }
     let poses = anchors()
     let cur: Omit<Pose,'at'> = { ...poses[0] }
+    let actions: Record<string, THREE.AnimationAction> = {}
+    let activeClip = ''
     let lastY = window.scrollY, vel = 0, elapsed = 0
 
     const resize = () => {
@@ -189,7 +194,16 @@ export default function BlueTunaScene() {
       // tuna motion: calm, eased path (no camera/erratic tilt)
       const inst = (y - lastY) / Math.max(dt, 0.001); lastY = y; vel += (inst - vel) * 0.12
       const speedUp = Math.min(Math.abs(vel) / 2000, 1.0)
+      // hero "eating": blend toward Attack near coral at top; otherwise swim
       if (mixer && !reduce) mixer.update(dt * (0.9 + speedUp))
+      const swim = actions['Fish_Armature|Swimming_Normal']
+      const eat = actions['Fish_Armature|Attack']
+      if (swim && eat) {
+        const wantEat = y < h * 0.35 ? 0.85 : 0
+        const w = eat.getEffectiveWeight()
+        const nw = w + (wantEat - w) * (1 - Math.exp(-3 * dt))
+        eat.setEffectiveWeight(nw); swim.setEffectiveWeight(1 - nw)
+      }
       let target = poses[0]
       for (let i = 0; i < poses.length - 1; i++) {
         const a = poses[i], b = poses[i + 1]
@@ -220,9 +234,10 @@ export default function BlueTunaScene() {
   return (
     <div ref={root} className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
       <div ref={dayRef} className="absolute inset-0 will-change-[opacity]" style={{ backgroundImage: `url(${DAY_IMAGE})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        {/* Tuna Bay atmosphere: warm daylight lift + ocean depth (clean, no distortion) */}
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(120% 90% at 70% 18%, rgba(255,214,140,.18), rgba(255,214,140,0) 55%), linear-gradient(180deg, rgba(6,58,78,.06) 0%, rgba(5,45,64,.22) 52%, rgba(4,34,52,.62) 100%)' }} />
-        <div className="absolute inset-x-0 bottom-0 h-[38%]" style={{ background: 'linear-gradient(180deg, rgba(4,34,52,0), rgba(3,24,38,.68))' }} />
+        {/* Motion-site-inspired hero treatment, Tuna Bay colors */}
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(110% 85% at 18% 12%, rgba(142,216,199,.20), rgba(142,216,199,0) 48%), radial-gradient(90% 70% at 78% 8%, rgba(255,194,120,.16), rgba(255,194,120,0) 46%), linear-gradient(180deg, rgba(3,40,58,.04) 0%, rgba(4,44,62,.18) 46%, rgba(4,34,52,.68) 100%)' }} />
+        <div className="absolute inset-x-0 top-0 h-[42%]" style={{ background: 'linear-gradient(180deg, rgba(200,245,255,.10), rgba(200,245,255,0))', mixBlendMode: 'screen' }} />
+        <div className="absolute inset-x-0 bottom-0 h-[38%]" style={{ background: 'linear-gradient(180deg, rgba(4,34,52,0), rgba(3,24,38,.72))' }} />
       </div>
       {/* Mid scroll: deep Pacific gradient, no flat purple */}
       <div ref={violetRef} className="absolute inset-0 opacity-0" style={{ background: 'linear-gradient(180deg, #0b4f63 0%, #083140 46%, #052633 100%)' }} />
