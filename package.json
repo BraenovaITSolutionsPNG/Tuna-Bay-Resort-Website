@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "format": "oxfmt",
-    "server": "nodemon server/index.ts"
+    "server": "nodemon --exec \"npx tsx\" server/index.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.2.0",

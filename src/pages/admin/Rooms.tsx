@@ -16,7 +16,7 @@ export default function AdminRooms() {
   const [showForm, setShowForm] = useState(false)
 
   const reload = () => {
-    fetch('/api/rooms').then(r => r.ok ? r.json() : []).then(d => setRooms(Array.isArray(d) ? d : [])).catch(() => setRooms([]))
+    fetch('/api/rooms',{headers: localStorage.getItem('token')?{Authorization:`Bearer ${localStorage.getItem('token')}`}:{}}).then(async r=>{ if(r.status===401||r.status===403) throw 0; return r.ok?r.json():[] }).then(d=>setRooms(Array.isArray(d)?d:[])).catch(()=>setRooms([]))
   }
 
   useEffect(() => { reload() }, [])

@@ -169,20 +169,15 @@ export async function createBooking(payload: BookingPayload): Promise<{ booking:
 /** List bookings from the API, falling back to device storage when offline. */
 export async function listBookings(): Promise<{ bookings: Booking[]; source: BookingSource }> {
   try {
-    const token = getToken()
-    const response = await fetch('/api/bookings', {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
+    const response = await fetch('/api/bookings', { headers: authHeaders() })
     if (response.ok) {
       const data = await safeJson(response)
-      if (Array.isArray(data)) {
-        return { bookings: data.map((row) => normalizeBooking(row as Partial<Booking>)), source: 'server' }
-      }
+      if (Array.isArray(data)) return { bookings: data.map((row) => normalizeBooking(row as Partial<Booking>)), source: 'server' }
     }
-  } catch {
-    // Offline or API unavailable — use the device store below.
+    if (response.status === 401 || response.status === 403) throw new BookingError('Please sign in as an administrator to manage bookings.', response.status)
+  } catch (error) {
+    if (error instanceof BookingError) throw error
   }
-
   return { bookings: readLocal(), source: 'device' }
 }
 
@@ -194,7 +189,7 @@ export async function updateBooking(id: number, patch: Partial<Booking>): Promis
   try {
     const response = await fetch(`/api/bookings/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+      headers: authHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(patch),
     })
     if (response.ok) {
@@ -216,7 +211,7 @@ export async function deleteBooking(id: number): Promise<BookingSource> {
   try {
     const response = await fetch(`/api/bookings/${id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${getToken()}` },
+      headers: authHeaders(),
     })
     if (response.ok) {
       const data = await safeJson(response)
@@ -232,7 +227,7 @@ export async function deleteBooking(id: number): Promise<BookingSource> {
   return 'device'
 }
 
-function getToken(): string {
+export function getToken(): string {
   if (typeof window === 'undefined') return ''
   try {
     return window.localStorage.getItem('token') || ''
@@ -370,4 +365,10 @@ function seedBookings(): Booking[] {
     status: sample.status ?? 'pending',
     created_at: new Date(Date.now() - index * 3_600_000).toISOString(),
   }))
+}
+
+
+
+export function authHeaders(extra: Record<string,string> = {}): Record<string,string> {
+  const t = getToken(); return t ? { Authorization: `Bearer ${t}`, ...extra } : extra
 }

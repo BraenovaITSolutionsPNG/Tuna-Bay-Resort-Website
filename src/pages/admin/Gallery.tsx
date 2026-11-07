@@ -13,9 +13,12 @@ export default function AdminGallery() {
   const [title, setTitle] = useState('')
   const [alt, setAlt] = useState('')
 
+  const token = () => localStorage.getItem('token') || ''
+  const auth = () => ({ Authorization: `Bearer ${token()}` })
+
   const reload = () => {
-    fetch('/api/gallery')
-      .then(r => r.ok ? r.json() : [])
+    fetch('/api/gallery', { headers: auth() })
+      .then(async r => { if (r.status === 401) throw 0; return r.ok ? r.json() : [] })
       .then(d => setImages(Array.isArray(d) ? d : []))
       .catch(() => setImages([]))
   }
@@ -25,10 +28,9 @@ export default function AdminGallery() {
   const addImage = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!src) return
-    const token = localStorage.getItem('token')
     await fetch('/api/gallery', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', ...auth() },
       body: JSON.stringify({ src, alt, title }),
     })
     setSrc(''); setAlt(''); setTitle('')
@@ -37,11 +39,7 @@ export default function AdminGallery() {
 
   const deleteImage = async (id: number) => {
     if (!confirm('Delete this image?')) return
-    const token = localStorage.getItem('token')
-    await fetch(`/api/gallery/${id}`, {
-      method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    await fetch(`/api/gallery/${id}`, { method: 'DELETE', headers: auth() })
     reload()
   }
 

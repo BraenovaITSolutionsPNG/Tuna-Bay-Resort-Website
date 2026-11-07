@@ -4,347 +4,243 @@ import cors from 'cors'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import { store, touch, nextId, flushStore } from './store.ts'
+import { signToken, requireAdmin } from './auth.ts'
 import { createPaymentSession, getPaymentProvider, getStripePublishableKey, verifyWebhookSignature } from './payments.ts'
 import { sendEmail, bookingConfirmationEmail, bookingStatusEmail, reminderEmail } from './emails.ts'
 
-// Create a simple mock SQL implementation for development
-const mockData = {
-  users: [],
-  bookings: [],
-  rooms: [],
-  facilities: [],
-  menu_items: [],
-  gallery_images: [],
-  testimonials: [],
-  settings: []
-}
-
-// Initialize mock database with seed data
-async function initializeMockDatabase() {
-  // Seed rooms if empty
-  if (mockData.rooms.length === 0) {
-    mockData.rooms.push(
-      { id: 1, name: 'Standard Room', description: 'Comfortable coastal rooms', price: 'K450/night', features: 'Queen Bed, AC, Private Bathroom, WiFi', image: '/images/tuna-bay-waterfront.png' },
-      { id: 2, name: 'Deluxe Room', description: 'Spacious rooms with garden views', price: 'K550/night', features: 'King Bed, AC, Private Bathroom, WiFi, Balcony', image: '/images/tuna-bay-hero.jpg' },
-      { id: 3, name: 'Ocean View Suite', description: 'Stunning ocean views with separate living area', price: 'K750/night', features: 'King Bed, Living Area, Ocean View, AC, WiFi', image: '/images/tuna-bay-waterfront.png' },
-      { id: 4, name: 'Family Room', description: 'Generous space for families', price: 'K650/night', features: '2 Queen Beds, Family Space, AC, Private Bathroom, WiFi', image: '/images/tuna-bay-hero.jpg' },
-      { id: 5, name: 'Beachfront Villa', description: 'Ultimate luxury with direct beach access', price: 'K950/night', features: 'King Bed, Private Villa, Beach Access, AC, WiFi, Kitchenette', image: '/images/tuna-bay-waterfront.png' }
-    )
-  }
-
-  // Seed facilities if empty
-  if (mockData.facilities.length === 0) {
-    mockData.facilities.push(
-      { id: 1, title: 'Resort Rooms', text: 'Comfortable accommodation', image: '/images/tuna-bay-waterfront.png' },
-      { id: 2, title: 'Resort Swimming Pool', text: 'A spacious outdoor pool', image: '/images/tuna-bay-hero.jpg' },
-      { id: 3, title: 'Waterfront Jetty', text: 'Direct access to the bay', image: '/images/tuna-bay-waterfront.png' },
-      { id: 4, title: 'Restaurant & Bar', text: 'Covered, open-air dining', image: '/images/tuna-bay-hero.jpg' },
-      { id: 5, title: 'Function Spaces', text: 'Flexible indoor and outdoor areas', image: '/images/tuna-bay-waterfront.png' }
-    )
-  }
-
-  // Seed menu if empty
-  if (mockData.menu_items.length === 0) {
-    mockData.menu_items.push(
-      { id: 1, category: 'dining', name: 'Tuna Bay Seafood Basket', description: 'Crispy fish, prawns, calamari', price: 'K85' },
-      { id: 2, category: 'dining', name: 'Chargrilled Reef Fish', description: 'Seasonal catch', price: 'K72' },
-      { id: 3, category: 'dining', name: 'Coconut Prawn Curry', description: 'Local prawns, coconut curry', price: 'K65' },
-      { id: 4, category: 'drinks', name: 'Tropical Fruit Cooler', description: 'Pineapple, passionfruit', price: 'K18' },
-      { id: 5, category: 'hire', name: 'Family Day Pass', description: 'Weekend entry', price: 'K60' }
-    )
-  }
-
-  // Create admin user
-  if (mockData.users.length === 0) {
-    const bcryptHash = (p: string) => bcrypt.hashSync(p, 10)
-    mockData.users.push(
-      { id: 1, email: 'admin@tunabay.com', password_hash: bcryptHash('admin123'), name: 'Admin', role: 'admin' },
-      { id: 2, email: 'staff@tunabay.com', password_hash: bcryptHash('staff123'), name: 'Staff', role: 'staff' }
-    )
-  }
-}
-
-initializeMockDatabase().catch(console.error)
-
-// Helper function to execute SQL queries
-function executeQuery(sql: string, params?: any[]) {
-  const sqlLower = sql.toLowerCase().trim()
-  
-  if (sqlLower.includes('create table')) {
-    return []
-  }
-  
-  if (sqlLower.includes('select')) {
-    const tableMatch = sql.match(/from (\w+)/i)
-    if (tableMatch && mockData[tableMatch[1] as keyof typeof mockData]) {
-      return mockData[tableMatch[1] as keyof typeof mockData]
-    }
-    return []
-  }
-  
-  if (sqlLower.includes('insert')) {
-    const tableMatch = sql.match(/into (\w+)/i)
-    if (tableMatch && params && params.length > 0) {
-      const tableName = tableMatch[1]
-      if (mockData[tableName as keyof typeof mockData]) {
-        const id = mockData[tableName as keyof typeof mockData].length + 1
-        mockData[tableName as keyof typeof mockData].push({ id, ...params[0] })
-        return [{ id }]
-      }
-    }
-    return []
-  }
-  
-  if (sqlLower.includes('update')) {
-    return []
-  }
-  
-  if (sqlLower.includes('delete')) {
-    return []
-  }
-  
-  console.log('Mock SQL executed:', sql, params)
-  return []
-}
-
 const app = express()
 const PORT = process.env.PORT || 5000
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me'
 
-app.use(helmet())
+app.use(helmet({ contentSecurityPolicy: false }))
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3004', 'http://localhost:8443'],
-  credentials: true
+  origin: process.env.ALLOWED_ORIGINS?.split(',').map(s => s.trim()).filter(Boolean) || ['http://localhost:3004', 'http://localhost:8443'],
+  credentials: true,
 }))
+// Stripe webhook needs raw body; mount before json
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+  const sig = String(req.headers['stripe-signature'] || '')
+  const raw = Buffer.isBuffer(req.body) ? req.body.toString() : String(req.body || '')
+  const result = verifyWebhookSignature(raw, sig)
+  if (!result.ok) return res.status(400).json({ error: result.error })
+  if (result.event?.type === 'checkout.session.completed') {
+    const meta = (result.event.data.object as any).metadata || {}
+    const id = Number(meta.bookingId)
+    const b = store.bookings.find((x: any) => x.id === id)
+    if (b) { b.payment_status = 'paid'; b.payment_method = 'online'; b.payment_reference = (result.event.data.object as any).id; touch() }
+  }
+  res.json({ received: true, type: result.event?.type })
+})
 app.use(express.json({ limit: '5mb' }))
 app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: 'Too many requests from this IP, please try again later.'
-})
-app.use('/api/', limiter)
+app.use('/api/', rateLimit({ windowMs: 15 * 60 * 1000, max: 200, message: 'Too many requests, please try again later.' }))
+const bookingLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 8, message: 'Too many booking requests, please try again later.' })
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 12, message: 'Too many login attempts, please try again later.' })
 
-const bookingLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 5,
-  message: 'Too many booking requests, please try again later.'
-})
-
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: 'Too many login attempts, please try again later.'
-})
-
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() })
-})
-
-app.post('/api/auth/login', authLimiter, async (req, res) => {
-  const { email, password } = req.body
-  if (!email || !password) return res.status(400).json({ error: 'Missing credentials' })
-  const rows = executeQuery(`SELECT * FROM users WHERE email = ${String(email).trim()}`, [email])
-  const user = rows[0] as { id: number; email: string; password_hash: string; name: string; role: string } | undefined
-  if (!user || !bcrypt.compareSync(String(password), user.password_hash)) {
-    return res.status(401).json({ error: 'Invalid email or password' })
-  }
-  const token = jwt.sign({ id: user.id, email: user.email, name: user.name, role: user.role }, JWT_SECRET, { expiresIn: '8h' })
-  res.json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } })
-})
-
-app.post('/api/booking', bookingLimiter, async (req, res) => {
-  const { name, phone, email, bookingType, date, checkout, party, room, rooms, message } = req.body
-  if (!name || !phone || !bookingType || !date) {
-    return res.status(400).json({ error: 'Missing required fields' })
-  }
-  const id = mockData.bookings.length + 1
-  const reference = `TB-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
-  const booking = {
-    id, reference, name, phone, email: email || '', booking_type: bookingType,
-    date, checkout: checkout || null, party: party || null, room: room || null,
-    rooms: rooms || null, message: message || null, status: 'pending',
-    payment_status: 'unpaid', payment_method: 'unpaid', payment_reference: null,
-    created_at: new Date().toISOString()
-  }
-  mockData.bookings.push(booking)
-  if (email) {
-    const tpl = bookingConfirmationEmail({ name, reference, bookingType, date, checkout, party, room, message })
-    await sendEmail({ to: email, ...tpl }).catch(() => {})
-  }
-  res.json({ success: true, id, reference, message: 'Booking request received', booking })
-})
-
-app.get('/api/rooms', async (req, res) => {
-  const rows = executeQuery('SELECT * FROM rooms')
-  res.json(rows)
-})
-
-app.get('/api/facilities', async (req, res) => {
-  const rows = executeQuery('SELECT * FROM facilities')
-  res.json(rows)
-})
-
-app.get('/api/menu', async (req, res) => {
-  const rows = executeQuery('SELECT * FROM menu_items')
-  res.json(rows)
-})
-
-function overlaps(a1: string, a2: string | null, b1: string, b2: string | null): boolean {
-  const start1 = a1, end1 = a2 || a1
-  const start2 = b1, end2 = b2 || b1
-  return start1 < end2 && start2 < end1
+function overlaps(a1: string, a2: string | null, b1: string, b2: string | null) {
+  const s1 = a1, e1 = a2 || a1, s2 = b1, e2 = b2 || b1
+  return s1 < e2 && s2 < e1
 }
+function hasConflict(room: string, date: string, checkout: string | null, excludeId?: number) {
+  const rn = String(room || '').toLowerCase()
+  return store.bookings.some((b: any) => b.id !== excludeId && b.status !== 'cancelled' && String(b.room || '').toLowerCase() === rn && overlaps(date, checkout, b.date, b.checkout))
+}
+
+app.get('/api/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }))
+
+// auth
+app.post('/api/auth/login', authLimiter, (req, res) => {
+  const { email, password } = req.body || {}
+  if (!email || !password) return res.status(400).json({ error: 'Missing credentials' })
+  const user = store.users.find((u: any) => String(u.email).toLowerCase() === String(email).toLowerCase()) as any
+  if (!user || !bcrypt.compareSync(String(password), user.password_hash)) return res.status(401).json({ error: 'Invalid email or password' })
+  const safe = { id: user.id, email: user.email, name: user.name, role: user.role }
+  res.json({ token: signToken(safe), user: safe })
+})
+app.get('/api/auth/me', requireAdmin, (req, res) => res.json({ user: req.user }))
+
+// public content
+app.get('/api/rooms', (_req, res) => res.json(store.rooms))
+app.get('/api/facilities', (_req, res) => res.json(store.facilities))
+app.get('/api/menu', (_req, res) => res.json(store.menu_items))
+app.get('/api/gallery', (_req, res) => res.json(store.gallery_images))
+app.get('/api/settings', (_req, res) => res.json(store.settings))
 
 app.get('/api/availability', (req, res) => {
   const room = String(req.query.room || '')
   const checkin = String(req.query.checkin || '')
   const checkout = String(req.query.checkout || req.query.checkin || '')
   if (!room || !checkin) return res.json({ available: true, conflicts: 0 })
-  const roomName = room.toLowerCase()
-  const conflicts = mockData.bookings.filter((b: any) => {
-    if (b.status === 'cancelled') return false
-    if (!b.room || String(b.room).toLowerCase() !== roomName) return false
-    return overlaps(checkin, checkout, b.date, b.checkout)
-  })
-  res.json({ available: conflicts.length === 0, conflicts: conflicts.length })
+  const conflict = hasConflict(room, checkin, checkout)
+  res.json({ available: !conflict, conflicts: conflict ? 1 : 0 })
 })
 
-app.get('/api/bookings', (req, res) => {
-  res.json(mockData.bookings)
+// booking
+app.post('/api/booking', bookingLimiter, async (req, res) => {
+  const { name, phone, email, bookingType, date, checkout, party, room, rooms, message } = req.body || {}
+  if (!name || !phone || !bookingType || !date) return res.status(400).json({ error: 'Missing required fields' })
+  if (bookingType === 'room' && room && hasConflict(room, date, checkout || null)) return res.status(409).json({ error: 'Selected room is not available for those dates.' })
+  const id = nextId('bookings')
+  const reference = `TB-${Math.random().toString(36).slice(2, 8).toUpperCase()}`
+  const booking = {
+    id, reference, name, phone, email: email || '', booking_type: bookingType,
+    date, checkout: checkout || null, party: party || null, room: room || null,
+    rooms: rooms || null, message: message || null, status: 'pending',
+    payment_status: 'unpaid', payment_method: 'unpaid', payment_reference: null,
+    created_at: new Date().toISOString(),
+  }
+  store.bookings.push(booking); touch()
+  if (email) { const tpl = bookingConfirmationEmail({ name, reference, bookingType, date, checkout, party, room, message }); await sendEmail({ to: email, ...tpl }).catch(() => {}) }
+  res.json({ success: true, id, reference, message: 'Booking request received', booking })
 })
 
-app.put('/api/bookings/:id', async (req, res) => {
+// admin bookings
+app.get('/api/bookings', requireAdmin, (_req, res) => res.json(store.bookings))
+app.put('/api/bookings/:id', requireAdmin, async (req, res) => {
   const id = Number(req.params.id)
-  const idx = mockData.bookings.findIndex((b: any) => b.id === id)
+  const idx = store.bookings.findIndex((b: any) => b.id === id)
   if (idx === -1) return res.status(404).json({ error: 'Not found' })
   const allowed = ['name','email','phone','booking_type','date','checkout','party','room','rooms','message','status','payment_status','payment_method','payment_reference']
-  for (const key of allowed) {
-    if (req.body[key] !== undefined) mockData.bookings[idx][key] = req.body[key]
+  for (const k of allowed) if (req.body[k] !== undefined) store.bookings[idx][k] = req.body[k]
+  const b = store.bookings[idx]
+  if ((b.status === 'confirmed' || req.body.status === 'confirmed') && b.booking_type === 'room' && b.room && hasConflict(b.room, b.date, b.checkout, b.id)) {
+    // allow save but flag in response? keep strict: reject confirmation conflict
+    if (req.body.status === 'confirmed') return res.status(409).json({ error: 'Cannot confirm: room conflicts with another booking.' })
   }
-  const booking = mockData.bookings[idx]
-  if (booking.email && (req.body.status === 'confirmed' || req.body.status === 'cancelled')) {
-    const email = bookingStatusEmail({ name: booking.name, reference: booking.reference, status: req.body.status })
-    await sendEmail({ to: booking.email, ...email }).catch(() => {})
+  touch()
+  if (b.email && (req.body.status === 'confirmed' || req.body.status === 'cancelled')) {
+    const email = bookingStatusEmail({ name: b.name, reference: b.reference, status: req.body.status })
+    await sendEmail({ to: b.email, ...email }).catch(() => {})
   }
-  res.json({ success: true, booking })
+  res.json({ success: true, booking: b })
 })
-
-app.delete('/api/bookings/:id', (req, res) => {
+app.delete('/api/bookings/:id', requireAdmin, (req, res) => {
   const id = Number(req.params.id)
-  const idx = mockData.bookings.findIndex((b: any) => b.id === id)
+  const idx = store.bookings.findIndex((b: any) => b.id === id)
   if (idx === -1) return res.status(404).json({ error: 'Not found' })
-  mockData.bookings.splice(idx, 1)
+  store.bookings.splice(idx, 1); touch()
   res.json({ success: true })
 })
 
+// testimonials (public approved; admin sees all)
 app.get('/api/testimonials', (req, res) => {
   const all = req.query.all === 'true'
-  const rows = mockData.testimonials.filter((t: any) => all || t.approved)
-  res.json(rows)
+  if (all) {
+    // require admin for all view
+    const h = req.headers.authorization || ''
+    if (!h.startsWith('Bearer ')) return res.status(401).json({ error: 'Authentication required' })
+    try { require('jsonwebtoken').verify(h.slice(7), process.env.JWT_SECRET || 'dev-secret-change-me') } catch { return res.status(401).json({ error: 'Invalid or expired session' }) }
+    return res.json(store.testimonials)
+  }
+  res.json(store.testimonials.filter((t: any) => t.approved))
 })
-
 app.post('/api/testimonials', (req, res) => {
-  const { name, text, rating, bookingReference } = req.body
+  const { name, text, rating, bookingReference } = req.body || {}
   if (!name || !text) return res.status(400).json({ error: 'Name and text required' })
   if (bookingReference) {
-    const booking = mockData.bookings.find((b: any) => b.reference === bookingReference)
+    const booking = store.bookings.find((b: any) => b.reference === bookingReference)
     if (!booking) return res.status(400).json({ error: 'Invalid booking reference' })
     const checkout = booking.checkout || booking.date
-    if (new Date(checkout) > new Date()) {
-      return res.status(400).json({ error: 'Reviews can only be submitted after checkout' })
-    }
+    if (new Date(checkout) > new Date()) return res.status(400).json({ error: 'Reviews can only be submitted after checkout' })
   }
-  const id = mockData.testimonials.length + 1
-  mockData.testimonials.push({ id, name, text, rating: rating || 5, approved: false, created_at: new Date().toISOString() })
+  const id = nextId('testimonials')
+  store.testimonials.push({ id, name, text, rating: rating || 5, approved: false, created_at: new Date().toISOString() }); touch()
   res.json({ success: true, id })
 })
-
-app.put('/api/testimonials/:id', (req, res) => {
-  const id = Number(req.params.id)
-  const idx = mockData.testimonials.findIndex((t: any) => t.id === id)
+app.put('/api/testimonials/:id', requireAdmin, (req, res) => {
+  const id = Number(req.params.id); const idx = store.testimonials.findIndex((t: any) => t.id === id)
   if (idx === -1) return res.status(404).json({ error: 'Not found' })
-  mockData.testimonials[idx] = { ...mockData.testimonials[idx], ...req.body }
-  res.json({ success: true })
+  store.testimonials[idx] = { ...store.testimonials[idx], ...req.body }; touch(); res.json({ success: true })
 })
-
-app.delete('/api/testimonials/:id', (req, res) => {
-  const id = Number(req.params.id)
-  const idx = mockData.testimonials.findIndex((t: any) => t.id === id)
+app.delete('/api/testimonials/:id', requireAdmin, (req, res) => {
+  const id = Number(req.params.id); const idx = store.testimonials.findIndex((t: any) => t.id === id)
   if (idx === -1) return res.status(404).json({ error: 'Not found' })
-  mockData.testimonials.splice(idx, 1)
-  res.json({ success: true })
+  store.testimonials.splice(idx, 1); touch(); res.json({ success: true })
 })
 
-app.get('/api/gallery', (req, res) => {
-  res.json(mockData.gallery_images)
-})
-
-app.post('/api/gallery', (req, res) => {
-  const { src, alt, title } = req.body
-  if (!src) return res.status(400).json({ error: 'src required' })
-  const id = mockData.gallery_images.length + 1
-  mockData.gallery_images.push({ id, src, alt: alt || null, title: title || null })
-  res.json({ success: true, id })
-})
-
-app.delete('/api/gallery/:id', (req, res) => {
-  const id = Number(req.params.id)
-  const idx = mockData.gallery_images.findIndex((g: any) => g.id === id)
-  if (idx === -1) return res.status(404).json({ error: 'Not found' })
-  mockData.gallery_images.splice(idx, 1)
-  res.json({ success: true })
-})
-
-app.get('/api/settings', (req, res) => {
-  res.json(mockData.settings)
-})
-
-app.post('/api/settings', (req, res) => {
-  const { key, value } = req.body
-  if (!key) return res.status(400).json({ error: 'key required' })
-  const idx = mockData.settings.findIndex((s: any) => s.key === key)
-  if (idx === -1) mockData.settings.push({ key, value })
-  else mockData.settings[idx].value = value
-  res.json({ success: true })
-})
-
-app.post('/api/payments/create-session', async (req, res) => {
-  const { bookingId, reference, amountK, currency = 'PGK', description, customerEmail, customerName, successUrl, cancelUrl } = req.body
-  if (!bookingId || !amountK) return res.status(400).json({ error: 'Missing bookingId or amount' })
-  const result = await createPaymentSession({
-    bookingId, reference: reference || `TB-${bookingId}`, amountK: Number(amountK),
-    currency, description: description || 'Tuna Bay Resort booking',
-    customerEmail: customerEmail || '', customerName: customerName || '',
-    successUrl: successUrl || 'http://localhost:8443/booking?paid=1',
-    cancelUrl: cancelUrl || 'http://localhost:8443/booking?cancelled=1',
+// admin content CRUD
+for (const table of ['rooms','facilities','menu_items','gallery_images','settings'] as const) {
+  const route = table === 'menu_items' ? '/api/menu' : table === 'gallery_images' ? '/api/gallery' : table === 'settings' ? '/api/settings' : `/api/${table}`
+  app.post(route, requireAdmin, (req, res) => {
+    if (table === 'settings') {
+      const { key, value } = req.body || {}; if (!key) return res.status(400).json({ error: 'key required' })
+      const idx = store.settings.findIndex((s: any) => s.key === key)
+      if (idx === -1) store.settings.push({ key, value }); else store.settings[idx].value = value
+      touch(); return res.json({ success: true })
+    }
+    const id = nextId(table); store[table].push({ id, ...req.body }); touch(); res.json({ success: true, id })
   })
+  app.put(route + '/:id', requireAdmin, (req, res) => {
+    const id = Number(req.params.id); const idx = (store[table] as any[]).findIndex((r: any) => r.id === id)
+    if (idx === -1) return res.status(404).json({ error: 'Not found' })
+    ;(store[table] as any[])[idx] = { ...(store[table] as any[])[idx], ...req.body }; touch(); res.json({ success: true })
+  })
+  app.delete(route + '/:id', requireAdmin, (req, res) => {
+    if (table === 'settings') return res.status(400).json({ error: 'not supported' })
+    const id = Number(req.params.id); const idx = (store[table] as any[]).findIndex((r: any) => r.id === id)
+    if (idx === -1) return res.status(404).json({ error: 'Not found' })
+    ;(store[table] as any[]).splice(idx, 1); touch(); res.json({ success: true })
+  })
+}
+
+// users (admin)
+app.get('/api/users', requireAdmin, (_req, res) => res.json(store.users.map((u: any) => ({ id: u.id, email: u.email, name: u.name, role: u.role }))))
+app.post('/api/users', requireAdmin, (req, res) => {
+  const { email, password, name, role } = req.body || {}
+  if (!email || !password) return res.status(400).json({ error: 'email and password required' })
+  if (store.users.some((u: any) => u.email === email)) return res.status(409).json({ error: 'Email already exists' })
+  const id = nextId('users'); store.users.push({ id, email, password_hash: bcrypt.hashSync(String(password), 10), name: name || email, role: role || 'staff' }); touch()
+  res.json({ success: true, id })
+})
+
+// payments
+app.post('/api/payments/create-session', async (req, res) => {
+  const { bookingId, reference, amountK, amount, currency = 'PGK', description, customerEmail, customerName, successUrl, cancelUrl } = req.body || {}
+  const amt = Number(amountK ?? amount)
+  if (!bookingId || !amt) return res.status(400).json({ error: 'Missing bookingId or amount' })
+  const result = await createPaymentSession({
+    bookingId, reference: reference || `TB-${bookingId}`, amountK: amt,
+    currency: String(currency || 'PGK').toUpperCase(), description: description || 'Tuna Bay Resort booking',
+    customerEmail: customerEmail || '', customerName: customerName || '',
+    successUrl: successUrl || `${req.headers.origin || 'http://localhost:8443'}/booking?paid=1`,
+    cancelUrl: cancelUrl || `${req.headers.origin || 'http://localhost:8443'}/booking?cancelled=1`,
+  })
+  if (result.status === 'paid') { // mock instant
+    const b = store.bookings.find((x: any) => x.id === Number(bookingId))
+    if (b) { b.payment_status = 'paid'; b.payment_method = 'online'; b.payment_reference = result.transactionId; touch() }
+  }
   res.json(result)
 })
+app.get('/api/payments/config', (_req, res) => res.json({ provider: getPaymentProvider(), publishableKey: getStripePublishableKey(), currency: 'PGK' }))
 
-app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), (req, res) => {
-  const sig = String(req.headers['stripe-signature'] || '')
-  const result = verifyWebhookSignature(req.body.toString(), sig)
-  if (!result.ok) return res.status(400).json({ error: result.error })
-  res.json({ received: true, type: result.event?.type })
-})
-
-app.get('/api/payments/config', (req, res) => {
-  res.json({ provider: getPaymentProvider(), publishableKey: getStripePublishableKey() })
-})
-
-app.post('/api/emails/reminder', async (req, res) => {
-  const { to, name, reference, date, checkout } = req.body
+// email reminder (manual trigger) + simple auto scheduler
+app.post('/api/emails/reminder', requireAdmin, async (req, res) => {
+  const { to, name, reference, date, checkout } = req.body || {}
   if (!to) return res.status(400).json({ error: 'to required' })
   const email = reminderEmail({ name: name || 'Guest', reference: reference || '', date: date || '', checkout })
   const result = await sendEmail({ to, ...email })
   res.json(result)
 })
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
+function runReminders() {
+  const t = today()
+  for (const b of store.bookings as any[]) {
+    if (b.status === 'confirmed' && b.email && b.date === t && !b.reminder_sent) {
+      const email = reminderEmail({ name: b.name || 'Guest', reference: b.reference, date: b.date, checkout: b.checkout })
+      sendEmail({ to: b.email, ...email }).then((r) => { if (r.ok) { b.reminder_sent = true; touch() } }).catch(() => {})
+    }
+  }
+}
+setInterval(runReminders, 60 * 60 * 1000) // hourly check; idempotent per booking
+runReminders()
+
+process.on('SIGINT', () => { flushStore(); process.exit(0) })
+process.on('SIGTERM', () => { flushStore(); process.exit(0) })
+
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT} (persistent store)`))
+}
 
 export default app

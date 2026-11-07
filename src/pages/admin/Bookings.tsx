@@ -111,8 +111,8 @@ export default function AdminBookings() {
     try {
       if (method === 'online') {
         const res = await fetch('/api/payments/create-session', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount: (roomRateValue(booking) || 0) * Math.max(1, stayNights(booking.date, booking.checkout)), currency: 'PGK', description: `Booking ${booking.reference}`, bookingId: booking.id, customerEmail: booking.email, successUrl: location.href, cancelUrl: location.href }),
+          method: 'POST', headers: { 'Content-Type': 'application/json', ...(localStorage.getItem('token')?{Authorization:`Bearer ${localStorage.getItem('token')}`}:{}) },
+          body: JSON.stringify({ bookingId: booking.id, reference: booking.reference, amountK: (roomRateValue(booking) || 0) * Math.max(1, stayNights(booking.date, booking.checkout)) || 1, currency: 'PGK', description: `Booking ${booking.reference}`, customerEmail: booking.email, customerName: booking.name, successUrl: location.origin + '/booking?paid=1', cancelUrl: location.origin + '/booking?cancelled=1' }),
         })
         const data = await res.json()
         if (data.checkoutUrl) { window.open(data.checkoutUrl, '_blank'); return }

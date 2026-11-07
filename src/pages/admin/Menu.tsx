@@ -19,7 +19,7 @@ export default function AdminMenu() {
   const [showForm, setShowForm] = useState(false)
 
   const reload = () => {
-    fetch('/api/menu').then(r => r.ok ? r.json() : []).then(d => {
+    fetch('/api/menu',{headers: localStorage.getItem('token')?{Authorization:`Bearer ${localStorage.getItem('token')}`}:{}}).then(r => r.ok ? r.json() : []).then(d => {
       const items = Array.isArray(d) ? d : []
       setMenu(items)
       const cats = Array.from(new Set(items.map((m: MenuItem) => m.category).concat(DEFAULT_CATEGORIES)))

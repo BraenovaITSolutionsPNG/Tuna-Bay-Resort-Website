@@ -22,12 +22,13 @@ export default function AdminOverview() {
 
   useEffect(() => {
     let active = true
+    const h = (): Record<string,string> => { const t = localStorage.getItem('token'); return t ? { Authorization: `Bearer ${t}` } : {} }
     listBookings()
       .then(({ bookings: rows }) => { if (active) setBookings(rows) })
       .catch(() => { if (active) setBookings([]) })
-    fetch('/api/rooms').then(r => r.ok ? r.json() : []).then(d => setRooms(Array.isArray(d) ? d : [])).catch(() => setRooms([]))
-    fetch('/api/facilities').then(r => r.ok ? r.json() : []).then(d => setFacilities(Array.isArray(d) ? d : [])).catch(() => setFacilities([]))
-    fetch('/api/menu').then(r => r.ok ? r.json() : []).then(d => setMenu(Array.isArray(d) ? d : [])).catch(() => setMenu([]))
+    fetch('/api/rooms', { headers: h() }).then(r => r.ok ? r.json() : []).then(d => setRooms(Array.isArray(d) ? d : [])).catch(() => setRooms([]))
+    fetch('/api/facilities', { headers: h() }).then(r => r.ok ? r.json() : []).then(d => setFacilities(Array.isArray(d) ? d : [])).catch(() => setFacilities([]))
+    fetch('/api/menu', { headers: h() }).then(r => r.ok ? r.json() : []).then(d => setMenu(Array.isArray(d) ? d : [])).catch(() => setMenu([]))
     return () => { active = false }
   }, [])
 

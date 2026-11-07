@@ -5,8 +5,11 @@ export default function AdminSettings() {
   const [key, setKey] = useState('')
   const [value, setValue] = useState('')
 
+  const token = () => localStorage.getItem('token') || ''
+  const auth = () => ({ Authorization: `Bearer ${token()}` })
+
   const reload = () => {
-    fetch('/api/settings').then(r => r.ok ? r.json() : []).then(d => {
+    fetch('/api/settings', { headers: auth() }).then(r => r.ok ? r.json() : []).then(d => {
       const map: Record<string, string> = {}
       if (Array.isArray(d)) d.forEach((s: any) => { map[s.key] = s.value })
       setSettings(map)
@@ -15,13 +18,11 @@ export default function AdminSettings() {
 
   useEffect(() => { reload() }, [])
 
-  const token = () => localStorage.getItem('token') || ''
-
   const save = async (e: React.FormEvent) => {
     e.preventDefault()
     await fetch('/api/settings', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+      headers: { 'Content-Type': 'application/json', ...auth() },
       body: JSON.stringify({ key, value }),
     })
     setKey(''); setValue('')

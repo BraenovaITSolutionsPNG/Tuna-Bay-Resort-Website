@@ -14,7 +14,7 @@ export default function AdminFacilities() {
   const [showForm, setShowForm] = useState(false)
 
   const reload = () => {
-    fetch('/api/facilities').then(r => r.ok ? r.json() : []).then(d => setFacilities(Array.isArray(d) ? d : [])).catch(() => setFacilities([]))
+    fetch('/api/facilities',{headers: localStorage.getItem('token')?{Authorization:`Bearer ${localStorage.getItem('token')}`}:{}}).then(async r=>{ if(r.status===401||r.status===403) throw 0; return r.ok?r.json():[] }).then(d=>setFacilities(Array.isArray(d)?d:[])).catch(()=>setFacilities([]))
   }
 
   useEffect(() => { reload() }, [])
