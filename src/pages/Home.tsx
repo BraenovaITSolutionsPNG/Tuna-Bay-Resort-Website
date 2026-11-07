@@ -4,6 +4,7 @@ import { Header, Footer, Eyebrow } from '../components/Layout'
 import ReviewForm from '../components/ReviewForm'
 import BookingForm from '../components/BookingForm'
 import EnquiryForm from '../components/EnquiryForm'
+import BlueTunaScene from '../components/BlueTunaScene'
 
 const heroImage = '/images/tuna-bay-hero.jpg'
 const aboutImage = '/images/tuna-bay-waterfront.png'
@@ -48,12 +49,11 @@ export default function Home() {
   }, [])
 
   return (
-    <main className="overflow-x-hidden bg-sand text-ink">
+    <main className="relative overflow-x-hidden bg-[#052633] text-white">
+      <BlueTunaScene />
       <Header variant="dark" />
-      <section className="relative min-h-[75svh] sm:min-h-[92svh] bg-ocean text-white overflow-hidden">
-        <img src={heroImage} alt="Aerial view of Tuna Bay Resort and its waterfront pool" className="absolute inset-0 size-full object-cover object-center" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,37,51,.55)_0%,rgba(5,37,51,.92)_100%)] sm:bg-[linear-gradient(90deg,rgba(5,37,51,.94)_0%,rgba(5,37,51,.68)_48%,rgba(5,37,51,.18)_100%)]" />
-        <div className="relative z-10 flex flex-col justify-end sm:justify-center min-h-[75svh] sm:min-h-[92svh] page-wrap pb-10 sm:pb-8 pt-24 sm:pt-36">
+      <section id="tuna-hero" className="relative z-10 min-h-[100svh] text-white overflow-hidden">
+        <div className="relative z-10 flex flex-col justify-end sm:justify-center min-h-[100svh] page-wrap pb-10 sm:pb-8 pt-24 sm:pt-36">
           <div className="max-w-3xl">
             <div className="mb-3 sm:mb-6">
               <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.25em] text-seafoam">
@@ -113,18 +113,18 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section-space bg-sand">
+      <section id="tuna-about" className="section-space relative z-10">
         <div className="page-wrap grid items-center gap-12 lg:grid-cols-[1.05fr_.95fr] lg:gap-20">
           <div className="relative">
-            <div className="overflow-hidden rounded-[2rem]">
-              <img src={aboutImage} alt="Aerial view of Tuna Bay’s waterfront jetty and surrounding coastline" className="aspect-[4/5] w-full object-cover sm:aspect-[5/4] lg:aspect-[4/5]" />
+            <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-sm">
+              <img src={aboutImage} alt="Aerial view of Tuna Bay’s waterfront jetty and surrounding coastline" className="aspect-[4/5] w-full object-cover sm:aspect-[5/4] lg:aspect-[4/5] opacity-90" />
             </div>
           </div>
           <div>
-            <Eyebrow>Our little corner of the coast</Eyebrow>
-            <h2 className="heading-lg mt-4">Where the city <em>slows down</em> and the tide rolls in.</h2>
-            <p className="mt-6 text-lg leading-8 text-muted">Tucked behind Taurama’s mangroves, Tuna Bay Resort is a welcoming waterfront hideaway made for long lunches, salt-air afternoons and celebrations that feel a little more special.</p>
-            <Link to="/about" className="mt-8 inline-flex items-center gap-2 rounded-full bg-ocean px-7 py-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-teal">
+            <Eyebrow light>Our little corner of the coast</Eyebrow>
+            <h2 className="heading-lg mt-4 text-white">Where the city <em>slows down</em> and the tide rolls in.</h2>
+            <p className="mt-6 text-lg leading-8 text-white/72">Tucked behind Taurama’s mangroves, Tuna Bay Resort is a welcoming waterfront hideaway made for long lunches, salt-air afternoons and celebrations that feel a little more special.</p>
+            <Link to="/about" className="mt-8 inline-flex items-center gap-2 rounded-full bg-coral px-7 py-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-coral-dark">
               Learn More
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
             </Link>
@@ -132,18 +132,18 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section-space bg-white">
+      <section id="tuna-features" className="section-space relative z-10">
         <div className="page-wrap">
           <div className="mb-12">
-            <Eyebrow>Eat · Celebrate · Unwind</Eyebrow>
-            <h2 className="heading-lg mt-4">Everything you need for a <em>day by the bay.</em></h2>
+            <Eyebrow light>Eat · Celebrate · Unwind</Eyebrow>
+            <h2 className="heading-lg mt-4 text-white">Everything you need for a <em>day by the bay.</em></h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {offerings.map((item) => (
-              <article key={item.title} className="group relative overflow-hidden rounded-3xl border border-ocean/10 bg-sand-light p-6 transition duration-300 hover:-translate-y-1 hover:bg-ocean hover:text-white hover:shadow-xl">
-                <h3 className="mt-4 font-display text-2xl leading-tight">{item.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-muted group-hover:text-white/65">{item.text}</p>
-                <Link to={item.href} className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-teal group-hover:text-seafoam">
+              <article key={item.title} className="group relative overflow-hidden rounded-3xl border border-white/12 bg-white/[0.07] p-6 backdrop-blur-md transition duration-300 hover:-translate-y-1 hover:bg-white/[0.12] hover:shadow-xl">
+                <h3 className="mt-2 font-display text-2xl leading-tight text-white">{item.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-white/68">{item.text}</p>
+                <Link to={item.href} className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-seafoam">
                   Explore 
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
                 </Link>
@@ -153,22 +153,22 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section-space bg-sand-light">
+      <section id="tuna-experience" className="section-space relative z-10">
         <div className="page-wrap">
           <div className="mb-12">
-            <Eyebrow>Resort facilities</Eyebrow>
-            <h2 className="heading-lg mt-4">Relax, swim & <em>celebrate</em></h2>
+            <Eyebrow light>Resort facilities</Eyebrow>
+            <h2 className="heading-lg mt-4 text-white">Relax, swim & <em>celebrate</em></h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {facilities.map((facility) => (
-              <article key={facility.title} className="rounded-3xl border border-ocean/8 bg-white p-6 shadow-[0_12px_35px_rgba(8,49,64,.05)]">
-                <h3 className="font-display text-xl text-ocean">{facility.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-muted">{facility.text}</p>
+              <article key={facility.title} className="rounded-3xl border border-white/12 bg-white/[0.07] p-6 backdrop-blur-md shadow-[0_12px_35px_rgba(0,0,0,.18)]">
+                <h3 className="font-display text-xl text-white">{facility.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-white/68">{facility.text}</p>
               </article>
             ))}
           </div>
           <div className="mt-8">
-            <Link to="/facilities" className="inline-flex items-center gap-2 rounded-full bg-ocean px-7 py-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-teal">
+            <Link to="/facilities" className="inline-flex items-center gap-2 rounded-full bg-coral px-7 py-4 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-coral-dark">
               View All Facilities
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="size-4"><path d="M5 12h14" /><path d="m13 6 6 6-6 6" /></svg>
             </Link>
@@ -176,40 +176,31 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section-space bg-white">
+      <section className="section-space relative z-10">
         <div className="page-wrap">
           <div className="text-center mb-12">
-            <Eyebrow>Guest Reviews</Eyebrow>
-            <h2 className="heading-lg mt-4">What our guests <em>say</em></h2>
+            <Eyebrow light>Guest Reviews</Eyebrow>
+            <h2 className="heading-lg mt-4 text-white">What our guests <em>say</em></h2>
           </div>
           <div className="overflow-hidden">
             <div className="marquee-track gap-6">
               {[...testimonials, ...testimonials].map((t, i) => (
-                <div key={i} className="w-80 shrink-0 rounded-3xl border border-ocean/10 bg-sand-light p-6 shadow-[0_12px_35px_rgba(8,49,64,.05)]">
-                  <div className="text-yellow-500">{'★'.repeat(t.rating)}</div>
-                  <p className="mt-3 text-sm leading-6 text-muted italic">"{t.text}"</p>
-                  <p className="mt-4 font-display text-ocean">{t.name}</p>
+                <div key={i} className="w-80 shrink-0 rounded-3xl border border-white/12 bg-white/[0.07] p-6 backdrop-blur-md shadow-[0_12px_35px_rgba(0,0,0,.18)]">
+                  <div className="text-yellow-400">{'★'.repeat(t.rating)}</div>
+                  <p className="mt-3 text-sm leading-6 text-white/72 italic">"{t.text}"</p>
+                  <p className="mt-4 font-display text-white">{t.name}</p>
                 </div>
               ))}
             </div>
           </div>
-
           <div className="mt-12 max-w-xl mx-auto">
-            <h3 className="font-display text-xl text-ocean text-center mb-4">Leave a review</h3>
+            <h3 className="font-display text-xl text-white text-center mb-4">Leave a review</h3>
             {!showReviewForm ? (
               <div className="text-center">
-                <button onClick={() => setShowReviewForm(true)} className="rounded-full bg-ocean px-6 py-3 text-sm font-bold text-white hover:bg-teal transition">
-                  Write a Review
-                </button>
+                <button onClick={() => setShowReviewForm(true)} className="rounded-full bg-coral px-6 py-3 text-sm font-bold text-white hover:bg-coral-dark transition">Write a Review</button>
               </div>
             ) : (
-              <ReviewForm
-                onSubmitted={() => {
-                  setShowReviewForm(false)
-                  fetch('/api/testimonials').then(r => r.ok ? r.json() : []).then(d => setTestimonials(Array.isArray(d) ? d : [])).catch(() => {})
-                }}
-                onClose={() => setShowReviewForm(false)}
-              />
+              <ReviewForm onSubmitted={() => { setShowReviewForm(false); fetch('/api/testimonials').then(r => r.ok ? r.json() : []).then(d => setTestimonials(Array.isArray(d) ? d : [])).catch(() => {}) }} onClose={() => setShowReviewForm(false)} />
             )}
           </div>
         </div>
@@ -227,15 +218,15 @@ export default function Home() {
         </div>
       )}
 
-      <section id="location" className="section-space bg-sand">
+      <section id="tuna-end" className="section-space relative z-10">
         <div className="page-wrap">
           <div className="text-center mb-12">
-            <Eyebrow>Come find us</Eyebrow>
-            <h2 className="heading-lg mt-4">Location & <em>Contact</em></h2>
-            <p className="mt-6 max-w-2xl mx-auto leading-7 text-muted">Your Tuna Bay escape starts here in Taurama, Port Moresby.</p>
+            <Eyebrow light>Come find us</Eyebrow>
+            <h2 className="heading-lg mt-4 text-white">Location & <em>Contact</em></h2>
+            <p className="mt-6 max-w-2xl mx-auto leading-7 text-white/72">Your Tuna Bay escape starts here in Taurama, Port Moresby.</p>
           </div>
           <div className="grid gap-8 lg:grid-cols-[1fr_1.2fr]">
-            <div className="rounded-[2rem] bg-teal p-7 text-white sm:p-10">
+            <div className="rounded-[2rem] border border-white/12 bg-white/[0.07] p-7 text-white backdrop-blur-md sm:p-10">
               <h3 className="font-display text-2xl">Get in touch</h3>
               <div className="mt-6 space-y-4 text-sm">
                 <div><strong className="block text-seafoam">Address</strong><span className="text-white/80">Tuna Bay Resort, Taurama, Port Moresby, PNG</span></div>
@@ -247,14 +238,16 @@ export default function Home() {
                 <EnquiryForm />
               </div>
             </div>
-            <div className="rounded-[2rem] overflow-hidden shadow-xl h-full min-h-[400px]">
+            <div className="rounded-[2rem] overflow-hidden border border-white/12 shadow-xl h-full min-h-[400px]">
               <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d31528!2d147.180!3d-9.443!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zOcKwMjYnMzUiUyAxNDfCsDEwJzQ4IkU!5e0!3m2!1sen!2spg!4v1234567890" width="100%" height="100%" style={{ border: 0, minHeight: '400px' }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="Tuna Bay Resort Location" className="h-full w-full" />
             </div>
           </div>
         </div>
       </section>
 
-      <Footer />
+      <div className="relative z-10">
+        <Footer />
+      </div>
     </main>
   )
 }
