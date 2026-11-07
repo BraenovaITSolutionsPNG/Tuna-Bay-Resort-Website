@@ -122,7 +122,10 @@ export default function BlueTunaScene() {
         body.add(wrap)
 
         const clip = gltf.animations.find((a) => /Swimming_Normal/i.test(a.name)) || gltf.animations.find((a) => /swim/i.test(a.name)) || gltf.animations[0]
-        mixer.clipAction(clip).play()
+        if (clip) {
+          mixer = new THREE.AnimationMixer(rootObj)
+          mixer.clipAction(clip).play()
+        }
         body.visible = true
         console.info('BlueTuna ready', { clip: clip?.name, len, animations: gltf.animations?.length || 0 })
       } catch (e) { console.error('BlueTuna model setup failed', e) }
