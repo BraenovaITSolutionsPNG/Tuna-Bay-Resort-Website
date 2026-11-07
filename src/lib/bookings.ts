@@ -7,6 +7,8 @@
 // usable everywhere while the server remains the source of truth.
 
 export type BookingStatus = 'pending' | 'confirmed' | 'cancelled'
+export type PaymentStatus = 'unpaid' | 'paid' | 'refunded'
+export type PaymentMethod = 'unpaid' | 'online' | 'at_resort'
 
 export interface Booking {
   id: number
@@ -22,6 +24,9 @@ export interface Booking {
   rooms: string | null
   message: string | null
   status: BookingStatus | string
+  payment_status?: PaymentStatus | string
+  payment_method?: PaymentMethod | string
+  payment_reference?: string | null
   created_at: string
 }
 
@@ -182,11 +187,15 @@ export async function listBookings(): Promise<{ bookings: Booking[]; source: Boo
 }
 
 export async function updateBookingStatus(id: number, status: BookingStatus): Promise<BookingSource> {
+  return updateBooking(id, { status } as Partial<Booking>)
+}
+
+export async function updateBooking(id: number, patch: Partial<Booking>): Promise<BookingSource> {
   try {
     const response = await fetch(`/api/bookings/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify(patch),
     })
     if (response.ok) {
       const data = await safeJson(response)
@@ -198,7 +207,7 @@ export async function updateBookingStatus(id: number, status: BookingStatus): Pr
     if (error instanceof BookingError) throw error
   }
 
-  const rows = readLocal().map((booking) => (booking.id === id ? { ...booking, status } : booking))
+  const rows = readLocal().map((booking) => (booking.id === id ? { ...booking, ...patch } : booking))
   writeLocal(rows)
   return 'device'
 }
@@ -261,6 +270,9 @@ function normalizeBooking(raw: Partial<Booking>): Booking {
     rooms: raw.rooms ? String(raw.rooms) : null,
     message: raw.message ? String(raw.message) : null,
     status: String(raw.status ?? 'pending'),
+    payment_status: String(raw.payment_status ?? 'unpaid'),
+    payment_method: String(raw.payment_method ?? 'unpaid'),
+    payment_reference: raw.payment_reference ? String(raw.payment_reference) : null,
     created_at: String(raw.created_at ?? new Date().toISOString()),
   }
 }

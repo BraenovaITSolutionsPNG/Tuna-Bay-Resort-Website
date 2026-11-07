@@ -166,6 +166,7 @@ app.post('/api/booking', bookingLimiter, async (req, res) => {
     id, reference, name, phone, email: email || '', booking_type: bookingType,
     date, checkout: checkout || null, party: party || null, room: room || null,
     rooms: rooms || null, message: message || null, status: 'pending',
+    payment_status: 'unpaid', payment_method: 'unpaid', payment_reference: null,
     created_at: new Date().toISOString()
   }
   mockData.bookings.push(booking)
@@ -217,16 +218,18 @@ app.get('/api/bookings', (req, res) => {
 
 app.put('/api/bookings/:id', async (req, res) => {
   const id = Number(req.params.id)
-  const { status } = req.body
   const idx = mockData.bookings.findIndex((b: any) => b.id === id)
   if (idx === -1) return res.status(404).json({ error: 'Not found' })
-  mockData.bookings[idx].status = status
+  const allowed = ['name','email','phone','booking_type','date','checkout','party','room','rooms','message','status','payment_status','payment_method','payment_reference']
+  for (const key of allowed) {
+    if (req.body[key] !== undefined) mockData.bookings[idx][key] = req.body[key]
+  }
   const booking = mockData.bookings[idx]
-  if (booking.email && (status === 'confirmed' || status === 'cancelled')) {
-    const email = bookingStatusEmail({ name: booking.name, reference: booking.reference, status })
+  if (booking.email && (req.body.status === 'confirmed' || req.body.status === 'cancelled')) {
+    const email = bookingStatusEmail({ name: booking.name, reference: booking.reference, status: req.body.status })
     await sendEmail({ to: booking.email, ...email }).catch(() => {})
   }
-  res.json({ success: true })
+  res.json({ success: true, booking })
 })
 
 app.delete('/api/bookings/:id', (req, res) => {
