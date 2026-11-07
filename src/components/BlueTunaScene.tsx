@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js'
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js'
 
 const DAY_IMAGE = '/images/tuna-bay-hero.jpg'
 const NIGHT_IMAGE = '/images/tuna-bay-waterfront.png'
@@ -107,30 +108,49 @@ export default function BlueTunaScene() {
     }
     initPond()
 
-    // --- Three.js tuna ---
+    // --- Three.js tuna (Nectarline-style motion: scroll choreography, swim, pointer tilt) ---
     const renderer = new THREE.WebGLRenderer({ canvas: koi, alpha: true, antialias: true, powerPreference: 'high-performance' })
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.outputColorSpace = THREE.SRGBColorSpace
     renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.0
+    renderer.toneMappingExposure = 1.05
     const scene = new THREE.Scene()
     const pmrem = new THREE.PMREMGenerator(renderer)
     scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
-    scene.add(new THREE.HemisphereLight(0xdff3ff, 0x10304a, 1.0))
-    const key = new THREE.DirectionalLight(0xffffff, 1.8); key.position.set(3,5,6); scene.add(key)
-    const rim = new THREE.DirectionalLight(0x4fc3ff, 3.2); rim.position.set(-5,-1,-4); scene.add(rim)
-    const fill = new THREE.PointLight(0x66bfff, 18, 30); fill.position.set(0,0,4); scene.add(fill)
+    scene.add(new THREE.HemisphereLight(0xe6f6ff, 0x0b2a45, 1.15))
+    const key = new THREE.DirectionalLight(0xffffff, 2.0); key.position.set(3, 5, 6); scene.add(key)
+    const rim = new THREE.DirectionalLight(0x66ccff, 3.8); rim.position.set(-5, -1, -4); scene.add(rim)
+    const fill = new THREE.PointLight(0x7fd8ff, 22, 30); fill.position.set(0, 0, 4); scene.add(fill)
     const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100)
-    camera.position.set(0,0,10); camera.lookAt(0,0,0)
+    camera.position.set(0, 0, 10); camera.lookAt(0, 0, 0)
 
     const rig = new THREE.Group(); const body = new THREE.Group(); rig.add(body); scene.add(rig)
-    let swimUniforms: { time: { value: number }; speed: { value: number }; amp: { value: number }; freq: { value: number } } | null = null
+    let mixer: THREE.AnimationMixer | null = null
+
+    const tune = (rootObj: THREE.Object3D) => {
+      const mat = new THREE.MeshPhysicalMaterial({
+        color: 0x1a86ff, emissive: 0x1e90ff, emissiveIntensity: 1.15,
+        roughness: 0.16, metalness: 0.4, clearcoat: 1, clearcoatRoughness: 0.08,
+        sheen: 0.55, sheenColor: new THREE.Color(0xdff6ff),
+        envMapIntensity: 1.3, side: THREE.DoubleSide,
+      })
+      rootObj.traverse((o) => {
+        const m = o as THREE.Mesh
+        if (!m.isMesh) return
+        m.material = mat
+        m.frustumCulled = false
+        m.castShadow = false
+      })
+    }
 
     new GLTFLoader().load(FISH_GLB, (gltf) => {
       if (dead) return
       try {
-        const rootObj = gltf.scene.clone(true)
-        // orient/center
+        const rootObj = (SkeletonUtils as any).clone(gltf.scene) as THREE.Object3D
+        rootObj.updateMatrixWorld(true)
+        tune(rootObj)
+
+        // normalize: longest axis -> +X (nose direction for swim feel), center, scale to length 1
         const box0 = new THREE.Box3().setFromObject(rootObj)
         const size0 = box0.getSize(new THREE.Vector3())
         let longest = 'x'
@@ -139,54 +159,43 @@ export default function BlueTunaScene() {
         const wrap = new THREE.Group()
         wrap.add(rootObj)
         if (longest === 'z') wrap.rotation.y = Math.PI / 2
-        if (longest === 'y') wrap.rotation.y = -Math.PI / 2
-        wrap.rotation.y += Math.PI
+        if (longest === 'y') wrap.rotation.z = -Math.PI / 2
+        wrap.rotation.y += Math.PI // face +X
         wrap.updateMatrixWorld(true)
         const box = new THREE.Box3().setFromObject(wrap)
         const c = box.getCenter(new THREE.Vector3())
         const len = Math.max(...box.getSize(new THREE.Vector3()).toArray()) || 1
         wrap.position.sub(c)
         wrap.scale.setScalar(1 / len)
-
-        const mat = new THREE.MeshStandardMaterial({
-          color: 0x1f8fff, emissive: 0x1a7cff, emissiveIntensity: 1.8,
-          metalness: 0.35, roughness: 0.22, side: THREE.DoubleSide,
-        })
-        let meshCount = 0
-        rootObj.traverse((o) => {
-          const m = o as THREE.Mesh
-          if (!m.isMesh) return
-          meshCount++
-          m.material = mat
-          m.frustumCulled = false
-        })
         body.add(wrap)
-        console.info('BlueTuna ready', { meshes: meshCount, len })
+
+        if (gltf.animations?.length) {
+          mixer = new THREE.AnimationMixer(rootObj)
+          // pick a swim-like clip if named, else first
+          const clip = gltf.animations.find((a) => /swim|move|idle|loop/i.test(a.name)) || gltf.animations[0]
+          mixer.clipAction(clip).play()
+        }
+        console.info('BlueTuna ready', { meshes: rootObj.children.length, len, animations: gltf.animations?.length || 0 })
       } catch (e) { console.error('BlueTuna model setup failed', e) }
     }, undefined, (e) => { console.error('BlueTuna model load failed', FISH_GLB, e) })
 
-    // guaranteed-visible fallback (procedural tuna shape) so a fish always shows
+    // guaranteed-visible fallback until model arrives
     const fallback = (() => {
       const g = new THREE.Group()
-      const mat = new THREE.MeshStandardMaterial({ color: 0x33b7ff, emissive: 0x1e90ff, emissiveIntensity: 1.1, metalness: 0.35, roughness: 0.2 })
-      const bodyGeo = new THREE.SphereGeometry(0.5, 28, 20)
-      bodyGeo.scale(1.9, 0.72, 0.42)
-      const torso = new THREE.Mesh(bodyGeo, mat); g.add(torso)
-      const tail = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.62, 20), mat)
-      tail.rotation.z = -Math.PI / 2; tail.position.set(-1.1, 0, 0); g.add(tail)
-      const fin = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.42, 16), mat)
-      fin.position.set(0.05, 0.38, 0); g.add(fin)
-      const belly = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.3, 16), mat)
-      belly.rotation.z = Math.PI; belly.position.set(0.05, -0.32, 0); g.add(belly)
+      const mat = new THREE.MeshStandardMaterial({ color: 0x33b7ff, emissive: 0x1e90ff, emissiveIntensity: 1.2, metalness: 0.35, roughness: 0.18 })
+      const bodyGeo = new THREE.SphereGeometry(0.5, 28, 20); bodyGeo.scale(1.9, 0.72, 0.42)
+      g.add(new THREE.Mesh(bodyGeo, mat))
+      const tail = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.62, 20), mat); tail.rotation.z = -Math.PI / 2; tail.position.set(-1.1, 0, 0); g.add(tail)
+      const fin = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.42, 16), mat); fin.position.set(0.05, 0.38, 0); g.add(fin)
+      const belly = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.3, 16), mat); belly.rotation.z = Math.PI; belly.position.set(0.05, -0.32, 0); g.add(belly)
       g.scale.setScalar(0.85)
       return g
     })()
     body.add(fallback)
-    // hide fallback once real model is added
     const fallbackWatch = setInterval(() => { if (body.children.length > 1) { body.remove(fallback); clearInterval(fallbackWatch) } }, 200)
     setTimeout(() => clearInterval(fallbackWatch), 15000)
 
-    // scroll poses
+    // scroll choreography (Nectarline-style poses in half-viewport units)
     const anchors = () => {
       const h = window.innerHeight
       const top = (sel: string) => { const el = document.querySelector(sel) as HTMLElement | null; return el ? el.getBoundingClientRect().top + window.scrollY : h }
@@ -196,15 +205,15 @@ export default function BlueTunaScene() {
       const P = (x:number,y:number,s:number,yaw:number,pitch:number,roll:number, xp:number,yp:number,sp:number): Omit<Pose,'at'> =>
         phone ? {x:xp,y:yp,s:sp,yaw,pitch,roll} : {x,y,s,yaw,pitch,roll}
       return [
-        { at: 0, ...P(0.52,0.22,1.35,0.25,-0.55,0.04, 0.18,0.32,0.85) },
-        { at: top('#tuna-about') + 0.15*h, ...P(-0.48,-0.35,0.95,0.55,0.14,-0.08, 0.3,-0.48,0.62) },
-        { at: top('#tuna-features') + 0.2*h, ...P(0.44,-0.32,1.0,-0.4,0.22,0.08, -0.24,-0.48,0.64) },
-        { at: top('#tuna-experience') + 0.2*h, ...P(-0.34,-0.36,1.02,2.9,0.1,-0.05, 0.24,-0.5,0.66) },
-        { at: Math.min(end ? end.offsetTop : maxS, maxS), ...P(-0.5,0.34,0.95,0.3,-0.1,0.04, 0.18,-0.48,0.64) },
+        { at: 0, ...P(0.02, 0.16, 0.72, 0.18, -0.92, 0.05, 0.12, 0.38, 0.46) },
+        { at: top('#tuna-about') + 0.2*h, ...P(-0.66, -0.58, 0.42, 0.5, 0.2, -0.1, 0.42, -0.72, 0.3) },
+        { at: top('#tuna-features') + 0.2*h, ...P(0.5, -0.5, 0.46, -0.35, 0.32, 0.1, -0.35, -0.74, 0.3) },
+        { at: top('#tuna-experience') + 0.3*h, ...P(-0.42, -0.42, 0.6, 3.0, 0.12, -0.06, -0.3, -0.76, 0.32) },
+        { at: Math.min(end ? end.offsetTop : maxS, maxS), ...P(-0.7, 0.56, 0.48, 0.3, -0.14, 0.05, 0.3, -0.74, 0.32) },
       ] as Pose[]
     }
     let poses = anchors()
-    let cur: Omit<Pose,'at'> = {x:0.52,y:0.22,s:1.35,yaw:0.25,pitch:-0.55,roll:0.04}
+    let cur: Omit<Pose,'at'> = { x: 0.02, y: 0.16, s: 0.72, yaw: 0.18, pitch: -0.92, roll: 0.05 }
     let lastY = window.scrollY, vel = 0, elapsed = 0
 
     const resize = () => {
@@ -249,28 +258,27 @@ export default function BlueTunaScene() {
         // draw still last frame? cheap: just clear to nothing/skip; day layer handles fade
       }
 
-      // tuna
-      const inst = (y-lastY)/Math.max(dt,0.001); lastY=y; vel += (inst-vel)*0.1
-      const speedUp = Math.min(Math.abs(vel)/1800, 1.3)
-      if (swimUniforms && !reduce) { (swimUniforms as any).time.value += dt*(1+speedUp); (swimUniforms as any).amp.value = 0.07+0.03*speedUp }
+      // tuna motion (ease to pose, idle bob, faster swim on scroll, pointer tilt)
+      const inst = (y - lastY) / Math.max(dt, 0.001); lastY = y; vel += (inst - vel) * 0.1
+      const speedUp = Math.min(Math.abs(vel) / 1800, 1.4)
+      if (mixer && !reduce) mixer.update(dt * (1 + speedUp))
       let target = poses[0]
-      for (let i=0;i<poses.length-1;i++) {
-        const a=poses[i], b=poses[i+1]
-        if (y >= a.at && y <= b.at) { const tt = easeInOut((y-a.at)/(b.at-a.at||1)); target = { at:y, x:lerp(a.x,b.x,tt), y:lerp(a.y,b.y,tt), s:lerp(a.s,b.s,tt), yaw:lerp(a.yaw,b.yaw,tt), pitch:lerp(a.pitch,b.pitch,tt), roll:lerp(a.roll,b.roll,tt) } as any; break }
+      for (let i = 0; i < poses.length - 1; i++) {
+        const a = poses[i], b = poses[i + 1]
+        if (y >= a.at && y <= b.at) { const tt = easeInOut((y - a.at) / (b.at - a.at || 1)); target = { at: y, x: lerp(a.x,b.x,tt), y: lerp(a.y,b.y,tt), s: lerp(a.s,b.s,tt), yaw: lerp(a.yaw,b.yaw,tt), pitch: lerp(a.pitch,b.pitch,tt), roll: lerp(a.roll,b.roll,tt) } as any; break }
         if (y > b.at) target = b
       }
-      const k = reduce ? 1 : 1 - Math.exp(-3.2*dt)
-      ;(['x','y','s','yaw','pitch','roll'] as const).forEach((n)=>{ (cur as any)[n] += (((target as any)[n]||0)-(cur as any)[n])*k })
-      const bob = reduce ? 0 : Math.sin(0.9*elapsed)*0.016
-      const {fw,fh} = frustum()
-      rig.position.set(cur.x*fw/2, (cur.y+bob)*fh/2, 0)
-      rig.rotation.set(cur.roll + (reduce?0:Math.sin(0.7*elapsed)*0.035), cur.yaw + (reduce?0:Math.sin(0.5*elapsed)*0.05), cur.pitch, 'XYZ')
-      body.scale.setScalar(cur.s*fh)
-      // camera tilt
-      const camK = 1 - Math.exp(-dt/0.1)
-      camera.rotation.y += (-ptr.tx*0.01745 - camera.rotation.y)*camK
-      camera.rotation.x += (ptr.ty*0.01745 - camera.rotation.x)*camK
-      renderer.render(scene,camera)
+      const k = reduce ? 1 : 1 - Math.exp(-3.2 * dt)
+      ;(['x','y','s','yaw','pitch','roll'] as const).forEach((n) => { (cur as any)[n] += (((target as any)[n] || 0) - (cur as any)[n]) * k })
+      const bob = reduce ? 0 : Math.sin(0.9 * elapsed) * 0.018
+      const { fw, fh } = frustum()
+      rig.position.set(cur.x * fw / 2, (cur.y + bob) * fh / 2, 0)
+      rig.rotation.set(cur.roll + (reduce ? 0 : Math.sin(0.7 * elapsed) * 0.04), cur.yaw + (reduce ? 0 : Math.sin(0.5 * elapsed) * 0.06), cur.pitch, 'XYZ')
+      body.scale.setScalar(cur.s * fh)
+      const camK = 1 - Math.exp(-dt / 0.1)
+      camera.rotation.y += (-ptr.tx * 0.01745 - camera.rotation.y) * camK
+      camera.rotation.x += (ptr.ty * 0.01745 - camera.rotation.x) * camK
+      renderer.render(scene, camera)
 
       raf = requestAnimationFrame(tick)
     }
@@ -284,7 +292,7 @@ export default function BlueTunaScene() {
   }, [])
 
   return (
-    <div ref={root} className="pointer-events-none fixed inset-0 overflow-hidden" style={{ zIndex: 5 }} aria-hidden="true">
+    <div ref={root} className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
       <div ref={dayRef} className="absolute inset-0 will-change-[opacity,transform]" style={{ backgroundImage: `url(${DAY_IMAGE})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <canvas ref={pondCanvas} className="absolute inset-0 block h-full w-full opacity-0 transition-opacity duration-[1200ms]" />
       </div>
@@ -292,7 +300,7 @@ export default function BlueTunaScene() {
       <div ref={nightRef} className="absolute inset-0 opacity-0" style={{ backgroundImage: `url(${NIGHT_IMAGE})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
         <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg,rgba(5,38,51,.2),rgba(5,38,51,.55) 55%,rgba(5,38,51,.94))' }} />
       </div>
-      <canvas ref={koiCanvas} className="absolute inset-0 block h-full w-full" style={{ zIndex: 2 }} />
+      <canvas ref={koiCanvas} className="absolute inset-0 block h-full w-full" />
     </div>
   )
 }
