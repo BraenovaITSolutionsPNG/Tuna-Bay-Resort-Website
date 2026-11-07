@@ -68,8 +68,8 @@ async function initializeMockDatabase() {
   if (mockData.users.length === 0) {
     const bcryptHash = (p: string) => bcrypt.hashSync(p, 10)
     mockData.users.push(
-      { id: 1, email: 'admin@tunabay.com', password_hash: bcryptHash('admin123'), name: 'Admin', role: 'admin' },
-      { id: 2, email: 'staff@tunabay.com', password_hash: bcryptHash('staff123'), name: 'Staff', role: 'staff' }
+      { id: 1, email: 'admin@tunabay.com', password_hash: bcryptHash(process.env.ADMIN_SEED_PASSWORD || 'admin123'), name: 'Admin', role: 'admin' },
+      { id: 2, email: 'staff@tunabay.com', password_hash: bcryptHash(process.env.STAFF_SEED_PASSWORD || 'staff123'), name: 'Staff', role: 'staff' }
     )
   }
 }

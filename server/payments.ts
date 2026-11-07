@@ -37,10 +37,6 @@ export function getPaymentProvider(): PaymentProvider {
   return provider
 }
 
-export function getStripePublishableKey(): string {
-  return process.env.STRIPE_PUBLIC_KEY || ''
-}
-
 export async function createPaymentSession(req: PaymentRequest): Promise<PaymentResult> {
   if (provider === 'stripe' && stripe) {
     try {

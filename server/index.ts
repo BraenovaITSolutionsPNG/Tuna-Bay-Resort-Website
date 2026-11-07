@@ -6,7 +6,7 @@ import rateLimit from 'express-rate-limit'
 import bcrypt from 'bcryptjs'
 import { store, touch, nextId, flushStore } from './store.ts'
 import { signToken, requireAdmin } from './auth.ts'
-import { createPaymentSession, getPaymentProvider, getStripePublishableKey, verifyWebhookSignature } from './payments.ts'
+import { createPaymentSession, getPaymentProvider, verifyWebhookSignature } from './payments.ts'
 import { sendEmail, bookingConfirmationEmail, bookingStatusEmail, reminderEmail } from './emails.ts'
 
 const app = express()
@@ -212,7 +212,7 @@ app.post('/api/payments/create-session', async (req, res) => {
   }
   res.json(result)
 })
-app.get('/api/payments/config', (_req, res) => res.json({ provider: getPaymentProvider(), publishableKey: getStripePublishableKey(), currency: 'PGK' }))
+app.get('/api/payments/config', requireAdmin, (_req, res) => res.json({ provider: getPaymentProvider(), currency: 'PGK' }))
 
 // email reminder (manual trigger) + simple auto scheduler
 app.post('/api/emails/reminder', requireAdmin, async (req, res) => {

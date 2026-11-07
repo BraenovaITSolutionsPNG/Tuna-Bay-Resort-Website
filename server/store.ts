@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import fs from 'fs'
 import path from 'path'
+import crypto from 'crypto'
 import bcrypt from 'bcryptjs'
 
 const DATA_FILE = process.env.DATA_FILE || path.join(process.cwd(), 'data', 'tunabay.json')
@@ -51,13 +52,18 @@ function seed(s: Store) {
   )
   if (s.users.length === 0) {
     const h = (p: string) => bcrypt.hashSync(p, 10)
+    const adminPass = process.env.ADMIN_SEED_PASSWORD || (process.env.NODE_ENV === 'production' ? cryptoRandom() : 'admin123')
+    const staffPass = process.env.STAFF_SEED_PASSWORD || (process.env.NODE_ENV === 'production' ? cryptoRandom() : 'staff123')
     s.users.push(
-      { id: 1, email: 'admin@tunabay.com', password_hash: h('admin123'), name: 'Admin', role: 'admin' },
-      { id: 2, email: 'staff@tunabay.com', password_hash: h('staff123'), name: 'Staff', role: 'staff' },
+      { id: 1, email: process.env.ADMIN_SEED_EMAIL || 'admin@tunabay.com', password_hash: h(adminPass), name: 'Admin', role: 'admin' },
+      { id: 2, email: process.env.STAFF_SEED_EMAIL || 'staff@tunabay.com', password_hash: h(staffPass), name: 'Staff', role: 'staff' },
     )
+    if (process.env.NODE_ENV === 'production' && !process.env.ADMIN_SEED_PASSWORD) console.warn('[security] ADMIN_SEED_PASSWORD not set; generated a random admin seed password (set ADMIN_SEED_PASSWORD and reseed).')
   }
   if (!s.settings) (s as any).settings = []
 }
+
+function cryptoRandom() { return crypto.randomBytes(18).toString('base64url') }
 
 function load(): Store {
   try {
