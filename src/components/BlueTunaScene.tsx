@@ -75,16 +75,30 @@ export default function BlueTunaScene() {
     let mixer: THREE.AnimationMixer | null = null
 
     const tune = (rootObj: THREE.Object3D) => {
-      const mat = new THREE.MeshPhysicalMaterial({
-        color: 0x1a86ff, emissive: 0x1e90ff, emissiveIntensity: 1.15,
-        roughness: 0.16, metalness: 0.4, clearcoat: 1, clearcoatRoughness: 0.08,
-        sheen: 0.55, sheenColor: new THREE.Color(0xdff6ff),
-        envMapIntensity: 1.3, side: THREE.DoubleSide,
-      })
       rootObj.traverse((o) => {
         const m = o as THREE.Mesh
         if (!m.isMesh) return
-        m.material = mat
+        const apply = (mat: THREE.Material) => {
+          const mm = mat as THREE.MeshStandardMaterial & { clearcoat?: number; clearcoatRoughness?: number; sheen?: number; sheenColor?: THREE.Color }
+          const name = (mm.name || '').toLowerCase()
+          // Real tuna palette: deep blue top, silvery sides, yellow finlets/fins, dark accents
+          if (name.includes('eye')) {
+            mm.color.set('#101418'); mm.roughness = 0.18; mm.metalness = 0.2; mm.emissive?.set('#0a1822'); if ('emissiveIntensity' in mm) mm.emissiveIntensity = 0.15
+          } else if (name.includes('top') || name.includes('dark')) {
+            mm.color.set('#0b3d78'); mm.roughness = 0.28; mm.metalness = 0.45; mm.emissive?.set('#082a55'); if ('emissiveIntensity' in mm) mm.emissiveIntensity = 0.22
+          } else if (name.includes('fin')) {
+            mm.color.set('#d8b24a'); mm.roughness = 0.34; mm.metalness = 0.18; mm.emissive?.set('#5a4308'); if ('emissiveIntensity' in mm) mm.emissiveIntensity = 0.18
+          } else { // main/sides/belly
+            mm.color.set('#b8cad6'); mm.roughness = 0.26; mm.metalness = 0.5; mm.emissive?.set('#1b3b52'); if ('emissiveIntensity' in mm) mm.emissiveIntensity = 0.16
+          }
+          if ('clearcoat' in mm) { mm.clearcoat = 0.75; mm.clearcoatRoughness = 0.12 }
+          if ('sheen' in mm) { mm.sheen = 0.25; mm.sheenColor = new THREE.Color('#dff3ff') }
+          mm.envMapIntensity = 1.25
+          mm.side = THREE.DoubleSide
+          mm.needsUpdate = true
+        }
+        if (Array.isArray(m.material)) m.material.forEach(apply)
+        else if (m.material) apply(m.material)
         m.frustumCulled = false
         m.castShadow = false
       })
