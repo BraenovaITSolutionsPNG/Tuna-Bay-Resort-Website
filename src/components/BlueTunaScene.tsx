@@ -49,65 +49,11 @@ export default function BlueTunaScene() {
     window.addEventListener('pointermove', onMove)
     document.documentElement.addEventListener('pointerleave', onLeave)
 
-    // --- ripple on hero image ---
+    // --- hero background (stable). Ripple lens disabled to avoid edge/glitch artifacts over the hero. ---
     const img = new Image()
-    img.crossOrigin = 'anonymous'
     img.src = DAY_IMAGE
-    let gl: WebGLRenderingContext | null = null
-    let prog: WebGLProgram | null = null
-    let uni: Record<string, WebGLUniformLocation | null> = {}
-    let tex: WebGLTexture | null = null
     let imgReady = false
-    let pTime = 0
-    let presence = 0
-    let mouse = { x: 0.5, y: 0.5 }
-    let tilt = { x: 0, y: 0 }
-
-    const initPond = () => {
-      if (reduce) return
-      gl = pond.getContext('webgl', { alpha: false, antialias: false, premultipliedAlpha: false })
-      if (!gl) return
-      const vs = `attribute vec2 p; varying vec2 v; void main(){ v=p*0.5+0.5; gl_Position=vec4(p,0.,1.); }`
-      const fs = `precision mediump float; varying vec2 v; uniform sampler2D tex; uniform vec2 res; uniform vec2 img; uniform vec2 mouse; uniform float time; uniform float presence; uniform vec2 tilt; uniform float zoom;
-        void main(){
-          vec2 A=res, I=img; float a=A.x/A.y, i=I.x/I.y; vec2 sc=a>i?vec2(1.,i/a):vec2(a/i,1.); sc*=zoom;
-          vec2 uv=(v-0.5)*sc+0.5+tilt;
-          float d=distance(v,mouse); float r=sin(d*20.-time*5.)*0.006; float s=smoothstep(0.2,0.0,d)*presence;
-          vec2 off=normalize(v-mouse+1e-5)*r*s;
-          float R=texture2D(tex,uv+off+vec2(0.005,0.)*s).r;
-          float G=texture2D(tex,uv+off).g;
-          float B=texture2D(tex,uv+off-vec2(0.005,0.)*s).b;
-          gl_FragColor=vec4(R,G,B,1.);
-        }`
-      const mk = (t: number, s: string) => { const sh = gl!.createShader(t)!; gl!.shaderSource(sh, s); gl!.compileShader(sh); return sh }
-      prog = gl.createProgram()!
-      gl.attachShader(prog, mk(gl.VERTEX_SHADER, vs))
-      gl.attachShader(prog, mk(gl.FRAGMENT_SHADER, fs))
-      gl.linkProgram(prog)
-      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { gl = null; return }
-      gl.useProgram(prog)
-      const buf = gl.createBuffer()
-      gl.bindBuffer(gl.ARRAY_BUFFER, buf)
-      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]), gl.STATIC_DRAW)
-      const loc = gl.getAttribLocation(prog, 'p')
-      gl.enableVertexAttribArray(loc)
-      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
-      tex = gl.createTexture()
-      gl.bindTexture(gl.TEXTURE_2D, tex)
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
-      ;['tex','res','img','mouse','time','presence','tilt','zoom'].forEach((n) => (uni[n] = gl!.getUniformLocation(prog!, n)))
-      gl.uniform1i(uni.tex, 0)
-      gl.uniform1f(uni.zoom, 0.985)
-    }
-    img.onload = () => {
-      imgReady = true
-      if (gl && tex) { gl.bindTexture(gl.TEXTURE_2D, tex); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img) }
-      pond.style.opacity = '1'
-    }
-    initPond()
+    img.onload = () => { imgReady = true }
 
     // --- Three.js tuna (Nectarline-style motion: scroll choreography, swim, pointer tilt) ---
     const renderer = new THREE.WebGLRenderer({ canvas: koi, alpha: true, antialias: true, powerPreference: 'high-performance' })
@@ -218,11 +164,9 @@ export default function BlueTunaScene() {
     let lastY = window.scrollY, vel = 0, elapsed = 0
 
     const resize = () => {
-      const w = window.innerWidth, h = window.innerHeight, dpr = Math.min(window.devicePixelRatio || 1, 1.5)
-      pond.width = Math.floor(w*dpr); pond.height = Math.floor(h*dpr); pond.style.width=w+'px'; pond.style.height=h+'px'
-      if (gl) { gl.viewport(0,0,pond.width,pond.height); gl.uniform2f(uni.res, pond.width, pond.height); if (imgReady) gl.uniform2f(uni.img, img.naturalWidth, img.naturalHeight) }
-      renderer.setSize(w,h,false)
-      camera.aspect = w/h; camera.updateProjectionMatrix()
+      const w = window.innerWidth, h = window.innerHeight
+      renderer.setSize(w, h, false)
+      camera.aspect = w / h; camera.updateProjectionMatrix()
       poses = anchors()
     }
     resize(); window.addEventListener('resize', resize)
@@ -234,31 +178,17 @@ export default function BlueTunaScene() {
       if (dead) return
       const dt = Math.min(0.05, (now-prev)/1000); prev = now; elapsed += dt
       const h = window.innerHeight, y = window.scrollY
-      const toV = smoothstep(0.12*h, 1.0*h, y)
+      const toV = smoothstep(0.15 * h, 1.05 * h, y)
       const endEl = document.querySelector('#tuna-end') as HTMLElement | null
       const endTop = endEl ? endEl.offsetTop : document.documentElement.scrollHeight
       const toN = smoothstep(endTop - 1.1*h, endTop - 0.1*h, y)
-      if (dayRef.current) { dayRef.current.style.opacity = String(1-toV); dayRef.current.style.transform = `scale(${1+0.06*toV}) translateY(${-0.04*y}px)` }
+      // stable hero crossfade/parallax (no WebGL lens = no edge glitch)
+      if (dayRef.current) { dayRef.current.style.opacity = String(1 - toV); dayRef.current.style.transform = `translateY(${-0.03 * y}px)` }
       if (violetRef.current) violetRef.current.style.opacity = String(toV*(1-toN))
       if (glowRef.current) glowRef.current.style.opacity = String(toV*(1-toN))
       if (nightRef.current) nightRef.current.style.opacity = String(toN)
 
-      // ripple
-      if (gl && imgReady && toV < 0.999 && !reduce) {
-        pTime += dt
-        const pk = 1 - Math.exp(-6*dt)
-        presence += ((ptr.inside?1:0)-presence)*pk
-        if (ptr.inside) { mouse.x = ptr.u; mouse.y = ptr.v }
-        const tk = 1 - Math.exp(-dt/0.1)
-        tilt.x += (ptr.tx*0.009-tilt.x)*tk; tilt.y += (ptr.ty*0.009-tilt.y)*tk
-        gl.uniform2f(uni.mouse, mouse.x, mouse.y)
-        gl.uniform1f(uni.time, pTime)
-        gl.uniform1f(uni.presence, presence)
-        gl.uniform2f(uni.tilt, tilt.x*0.985, tilt.y*0.985)
-        gl.drawArrays(gl.TRIANGLES, 0, 6)
-      } else if (gl && imgReady && !reduce) {
-        // draw still last frame? cheap: just clear to nothing/skip; day layer handles fade
-      }
+      // (ripple lens removed — hero image renders cleanly via CSS background)
 
       // tuna motion (ease to pose, idle bob, faster swim on scroll, pointer tilt)
       const inst = (y - lastY) / Math.max(dt, 0.001); lastY = y; vel += (inst - vel) * 0.1
@@ -295,11 +225,10 @@ export default function BlueTunaScene() {
 
   return (
     <div ref={root} className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden="true">
-      <div ref={dayRef} className="absolute inset-0 will-change-[opacity,transform]" style={{ backgroundImage: `url(${DAY_IMAGE})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
-        <canvas ref={pondCanvas} className="absolute inset-0 block h-full w-full opacity-0 transition-opacity duration-[1200ms]" />
-        {/* Tuna Bay atmosphere: warm daylight lift + ocean depth (keeps ripple lens) */}
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(120% 90% at 70% 18%, rgba(255,214,140,.22), rgba(255,214,140,0) 55%), linear-gradient(180deg, rgba(6,58,78,.10) 0%, rgba(5,45,64,.28) 52%, rgba(4,34,52,.72) 100%)' }} />
-        <div className="absolute inset-x-0 bottom-0 h-[38%]" style={{ background: 'linear-gradient(180deg, rgba(4,34,52,0), rgba(3,24,38,.78))' }} />
+      <div ref={dayRef} className="absolute inset-0 will-change-[opacity]" style={{ backgroundImage: `url(${DAY_IMAGE})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+        {/* Tuna Bay atmosphere: warm daylight lift + ocean depth (clean, no distortion) */}
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(120% 90% at 70% 18%, rgba(255,214,140,.18), rgba(255,214,140,0) 55%), linear-gradient(180deg, rgba(6,58,78,.06) 0%, rgba(5,45,64,.22) 52%, rgba(4,34,52,.62) 100%)' }} />
+        <div className="absolute inset-x-0 bottom-0 h-[38%]" style={{ background: 'linear-gradient(180deg, rgba(4,34,52,0), rgba(3,24,38,.68))' }} />
       </div>
       {/* Mid scroll: deep Pacific gradient, no flat purple */}
       <div ref={violetRef} className="absolute inset-0 opacity-0" style={{ background: 'linear-gradient(180deg, #0b4f63 0%, #083140 46%, #052633 100%)' }} />
